@@ -1,9 +1,21 @@
-
-
 const ImageBg = () => {
   return (
     <div className='w-full h-full absolute z-0'>
-        <img src="/image.png" className='w-full h-full object-cover ' />
+        <picture>
+            <source
+                srcSet="/image.webp"
+                type="image/webp"
+            />
+            <img 
+                src="/image.png"
+                alt="Background pattern"
+                className='w-full h-full object-cover'
+                loading="lazy"
+                width={1920}
+                height={1080}
+                decoding="async"
+            />
+        </picture>
         
         {/* Top gradient overlay */}
         <div className='absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-[#0160ef] via-[#0165FF]/90 to-transparent z-10'></div>
@@ -13,9 +25,8 @@ const ImageBg = () => {
         
         {/* Purple/blue cyberpunk atmosphere */}
         <div className='absolute inset-0 bg-gradient-radial from-transparent via-[#8000ff]/10 to-transparent mix-blend-multiply'></div>
+        
         {/* Bottom gradient overlay */}
-        
-        
         <div className='absolute bottom-0 left-0 w-full h-[300px] bg-gradient-to-b from-transparent via-[#0165FF]/80 to-[#0160ef] z-10'></div>
         
         {/* Neon glow effect */}
