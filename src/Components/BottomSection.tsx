@@ -5,7 +5,7 @@ const BottomSection = () => {
   return (
     <div className='flex flex-col gap-4 absolute bottom-4 left-0 right-0 p-4 z-20 w-full'>
       {/* <TonConnectButton className='w-[80vh]' style={{width: '100%'}}/> */}
-      <div className='text-white text-xl text-center flex items-center justify-center gap-2'>
+      <div className='text-white text-lg text-center flex items-center justify-center gap-2'>
           <span>About MemeIndex:</span>
           <FaTelegram className='text-3xl'/> 
           <span>@MemeIndex</span>
