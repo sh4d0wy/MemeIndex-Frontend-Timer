@@ -11,7 +11,7 @@ const ConnectButton = () => {
         // Use existing instance or create new one
         if (!tonConnectUIInstance) {
             tonConnectUIInstance = new TonConnectUI({
-                manifestUrl: 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json'
+                manifestUrl: '/tonconnect-manifest.json'
             });
         }
         tonConnectUI.current = tonConnectUIInstance;
