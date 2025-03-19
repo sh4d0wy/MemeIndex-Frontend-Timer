@@ -1,4 +1,5 @@
 {
     "url": "https://meme-index-frontend-timer-88x3.vercel.app/",
-    "name": "MemeIndex"
+    "name": "MemeIndex",
+    "iconUrl":"./vite.svg"
 } 

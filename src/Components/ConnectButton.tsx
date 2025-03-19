@@ -11,7 +11,7 @@ const ConnectButton = () => {
         // Use existing instance or create new one
         if (!tonConnectUIInstance) {
             tonConnectUIInstance = new TonConnectUI({
-                manifestUrl: '/tonconnect-manifest.json'
+                manifestUrl: 'https://raw.githubusercontent.com/sh4d0wy/MemeIndex-Frontend-Timer/refs/heads/main/public/tonconnect-manifest.json'
             });
         }
         tonConnectUI.current = tonConnectUIInstance;
