@@ -1,0 +1,26 @@
+@import "tailwindcss";
+@font-face {
+  font-family: "Karmatic Arcade";
+  src: url("/ka1.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Joystix Monospace";
+  src: url("/joystix.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.karmatic-text {
+  font-family: "Karmatic Arcade";
+  text-transform: uppercase;
+  color: white;
+}
+
+.joystix-text {
+  font-family: "Joystix Monospace", monospace;
+  text-transform: uppercase;
+  color: white;
+}
