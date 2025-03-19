@@ -1,21 +1,15 @@
 const ImageBg = () => {
   return (
     <div className='w-full h-full absolute z-0'>
-        <picture>
-            <source
-                srcSet="/image.webp"
-                type="image/webp"
-            />
-            <img 
-                src="/image.png"
-                alt="Background pattern"
-                className='w-full h-full object-cover'
-                loading="lazy"
-                width={1920}
-                height={1080}
-                decoding="async"
-            />
-        </picture>
+        <img 
+            src="/image.png"
+            alt="Background pattern"
+            className='w-full h-full object-cover'
+            loading="lazy"
+            width={1920}
+            height={1080}
+            decoding="async"
+        />
         
         {/* Top gradient overlay */}
         <div className='absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-[#0160ef] via-[#0165FF]/90 to-transparent z-10'></div>
