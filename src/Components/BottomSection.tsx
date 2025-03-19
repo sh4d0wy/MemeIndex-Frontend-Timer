@@ -1,5 +1,3 @@
-// import { TonConnectButton } from '@tonconnect/ui-react'
-import React from 'react'
 import ConnectButton from './ConnectButton'
 import { FaTelegram } from 'react-icons/fa'
 

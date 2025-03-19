@@ -1,11 +1,9 @@
 import './App.css'
-// import { THEME,  TonConnectButton,  TonConnectUIProvider } from '@tonconnect/ui-react'
+
 import Header from './Components/Header'
 import ImageBg from './Components/ImageBg'
 import Timer from './Components/Timer'
 import BottomSection from './Components/BottomSection'
-import React from 'react'
-// import ConnectButton from './Components/ConnectButton'
 
 function App() {
   return (
@@ -16,7 +14,6 @@ function App() {
           <Header />
           <Timer />
           <BottomSection/>
-          {/* <ConnectButton/> */}
       </div>
 
    </>
