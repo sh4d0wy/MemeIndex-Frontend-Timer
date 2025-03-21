@@ -47,34 +47,31 @@ const BottomSection = () => {
         return;
       }
 
-      alert(`Debug - Telegram ID: ${telegramId}`); // Debug alert
-
       // Get referral link and stats
       const response = await axios.get(`https://backend-4hpn.onrender.com/api/referral/link/${walletAddress}`);
-      alert(`Debug - Referral Code: ${response.data.referralCode}`); // Debug alert
-      
       const statsResponse = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`);
       setReferralCount(statsResponse.data.referralCount || 0);
 
-      // First, get the template message sent to the user
-      alert('Sending template message...'); // Debug alert
-      
-      const templateResponse = await axios.post('https://tg-bot-script.onrender.com/send-template', {
-        chatId: telegramId,
-        referralCode: response.data.referralCode
-      });
+      // Create the message text
+      const messageText = 
+        `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
+        `Let's open it together!\n\n` +
+        `💰 Join now and receive:\n` +
+        `• 2 FREE votes for joining\n` +
+        `• Access to exclusive meme token listings\n` +
+        `• Early voting privileges`;
 
-      alert('Template response received'); // Debug alert
+      // Create the bot link
+      const botLink = `https://t.me/${response.data.botUsername}?start=${response.data.referralCode}`;
 
-      if (templateResponse.data.success) {
-        // Use Telegram's forward message dialog
-        if (window.Telegram?.WebApp) {
-          window.Telegram.WebApp.openTelegramLink(
-            `tg://msg?text=forward=${templateResponse.data.messageId}`
-          );
-        }
+      // Use Telegram's native sharing
+      if (window.Telegram?.WebApp) {
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(messageText)}`;
+        window.Telegram.WebApp.openTelegramLink(shareUrl);
       } else {
-        alert(`Template Response Error: ${JSON.stringify(templateResponse.data)}`);
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(`${messageText}\n${botLink}`);
+        alert('Share link copied to clipboard!');
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
