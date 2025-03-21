@@ -40,32 +40,32 @@ const BottomSection = () => {
     }
   
     try {
+      // Get user's Telegram ID
+      const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+      if (!telegramId) {
+        alert('Please open this app in Telegram');
+        return;
+      }
+
       // Get referral link and stats
       const response = await axios.get(`https://backend-4hpn.onrender.com/api/referral/link/${walletAddress}`);
       const statsResponse = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`);
       
       setReferralCount(statsResponse.data.referralCount || 0);
-  
-      // Format message for sharing or clipboard fallback
-      const messageText = `🚀 Join me on MemeIndex!\n\n💰 Get free votes when you join using my referral link\n🎁 You'll receive 2 votes, and I'll get 5 votes\n\nClick the button below to start:`;
-      
-      // If in Telegram WebApp
-      if (window.Telegram?.WebApp) {
-        // For Telegram Mini Apps, we need to use the appropriate method
-        // Create a Telegram share URL with button
-        const encodedText = encodeURIComponent(messageText);
-        const encodedButtonText = encodeURIComponent("Start MemeIndex");
-        const encodedUrl = encodeURIComponent(response.data.referralLink);
-        
-        // Create a Telegram share URL
-        const telegramShareUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}&button=${encodedButtonText}`;
-        
-        // Open the share URL
-        window.Telegram.WebApp.openTelegramLink(telegramShareUrl);
-      } else {
-        // Fallback to clipboard
-        await navigator.clipboard.writeText(`${messageText}\n${response.data.referralLink}`);
-        alert('Referral link copied to clipboard! You can now paste it in Telegram.');
+
+      // First, get the template message sent to the user
+      const templateResponse = await axios.post('https://tg-bot-script.onrender.com/send-template', {
+        chatId: telegramId,
+        referralCode: response.data.referralCode
+      });
+
+      if (templateResponse.data.success) {
+        // Use Telegram's forward message dialog
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.openTelegramLink(
+            `tg://msg?text=forward=${templateResponse.data.messageId}`
+          );
+        }
       }
     } catch (error) {
       console.error('Error getting referral link:', error);
@@ -73,7 +73,7 @@ const BottomSection = () => {
     }
   };
 
-  const handleShare = async () => {
+  const handleShareButton = async () => {
     if (!walletAddress) {
       alert('Please connect your wallet first');
       return;
@@ -82,21 +82,18 @@ const BottomSection = () => {
     try {
       const response = await axios.get(`https://backend-4hpn.onrender.com/api/referral/link/${walletAddress}`);
       
-      // Format message for sharing
-      const messageText = `🚀 Join me on MemeIndex!\n\n💰 Get free votes when you join using my referral link\n🎁 You'll receive 2 votes, and I'll get 5 votes`;
+      // Get the bot link that others will use to join
+      const botLink = response.data.referralLink;
       
       if (window.Telegram?.WebApp) {
-        // Create the share URL with button
-        const encodedText = encodeURIComponent(messageText);
-        const encodedButtonText = encodeURIComponent("Start MemeIndex");
-        const encodedUrl = encodeURIComponent(response.data.referralLink);
-        
-        const telegramShareUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}&button=${encodedButtonText}`;
-        
-        window.Telegram.WebApp.openTelegramLink(telegramShareUrl);
+        // Simple share message for the small button
+        const messageText = `Join MemeIndex with my referral link:`;
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(messageText)}`;
+        window.Telegram.WebApp.openTelegramLink(shareUrl);
       } else {
-        // Fallback
-        await navigator.clipboard.writeText(`${messageText}\n${response.data.referralLink}`);
+        // Fallback to clipboard
+        const messageText = `🚀 Join me on MemeIndex!\n\n💰 Get free votes when you join using my referral link\n🎁 You'll receive 2 votes, and I'll get 5 votes\n\nClick here to start:\n${botLink}`;
+        await navigator.clipboard.writeText(messageText);
         alert('Share link copied to clipboard!');
       }
     } catch (error) {
@@ -127,7 +124,7 @@ const BottomSection = () => {
           <span>{referralCount}/10</span>
         </button>
         <button 
-          onClick={handleShare}
+          onClick={handleShareButton}
           disabled={!walletAddress}
           className='bg-white text-blue-400 w-1/5 py-4 rounded-xl text-xl flex items-center justify-center gap-2 transition-all duration-300'
         >
