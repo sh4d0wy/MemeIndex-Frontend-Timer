@@ -1,4 +1,4 @@
-import  { useEffect, useRef, useState } from 'react'
+import  { useEffect, useRef, useState, useCallback } from 'react'
 import { TonConnectUI } from '@tonconnect/ui'
 import axios, { AxiosError } from 'axios';
 
@@ -27,8 +27,37 @@ const ConnectButton = () => {
     const tonConnectUI = useRef<TonConnectUI | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
-    const [res, setRes] = useState('');
-    const [error, setError] = useState('');
+
+    const handleConnect = useCallback(async () => {
+        try {
+            const address = await tonConnectUI.current?.account?.address;
+            if (!address) {
+                console.error("No wallet address found");
+                return;
+            }
+
+            if (!username) {
+                console.error("No username available");
+                return;
+            }
+
+            console.log("Registering user with:", { address, username });
+            const res = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
+                address: address,
+                username: username,
+                referralCode: ""
+            });
+            
+            console.log("Registration response:", res.data);
+        } catch (error) {
+            if (error instanceof AxiosError) {
+                console.error("Registration error:", error.response?.data || error.message);
+            } else {
+                console.error("Unknown error:", error);
+            }
+        }
+    }, [username]); // Only depend on username
+
     useEffect(() => {
         // Initialize Telegram username if available
         if (typeof window !== "undefined" && window.Telegram?.WebApp) {
@@ -40,8 +69,13 @@ const ConnectButton = () => {
                 // Fallback if no Telegram username
                 setUsername('User_' + Math.random().toString(36).substring(2, 8));
             }
+        } else {
+            // If not in Telegram, create a random username
+            setUsername('User_' + Math.random().toString(36).substring(2, 8));
         }
+    }, []); // Run only once on mount
 
+    useEffect(() => {
         // Use existing instance or create new one
         if (!tonConnectUIInstance) {
             tonConnectUIInstance = new TonConnectUI({
@@ -59,6 +93,8 @@ const ConnectButton = () => {
                 console.log("Connected:", await tonConnectUI.current?.connected);
                 console.log("Wallet:", await tonConnectUI.current?.wallet);
                 console.log("Account:", await tonConnectUI.current?.account);
+                // Wait a bit to ensure username is set
+                setTimeout(handleConnect, 1000);
             }
         };
         checkConnection();
@@ -71,7 +107,8 @@ const ConnectButton = () => {
                 console.log("Wallet:", await tonConnectUI.current?.wallet);
                 console.log("Account:", await tonConnectUI.current?.account);
                 setIsConnected(true);
-                handleConnect();
+                // Wait a bit to ensure username is set
+                setTimeout(handleConnect, 1000);
             } else {
                 console.log("Wallet Disconnected!");
                 setIsConnected(false);
@@ -88,47 +125,11 @@ const ConnectButton = () => {
                 tonConnectUI.current = null;
             }
         };
-    }, []);
+    }, [handleConnect]); // Only depend on handleConnect
 
     const openModal = async () => {
         if (tonConnectUI.current) {
             await tonConnectUI.current.openModal();
-        }
-    }
-
-    const handleConnect = async () => {
-        try {
-            const address = await tonConnectUI.current?.account?.address;
-            if (!address) {
-                console.error("No wallet address found");
-                setError("No wallet address found");
-                return;
-            }
-
-            if (!username) {
-                console.error("No username available");
-                setError("No username available");
-                return;
-            }
-
-            console.log("Registering user with:", { address, username });
-            
-            const res = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
-                address: address,
-                username: username,
-                referralCode: ""
-            });
-            
-            console.log("Registration response:", res.data);
-            setRes(res.data);
-        } catch (error) {
-            if (error instanceof AxiosError) {
-                console.error("Registration error:", error.response?.data || error.message);
-                setError(`Registeration Error: ${error.response?.data || error.message}`);
-            } else {
-                console.error("Unknown error:", error);
-                setError(`Unknown Error: ${error}`);
-            }
         }
     }
 
@@ -142,9 +143,7 @@ const ConnectButton = () => {
                     Connect Wallet
                 </button>
             )}
-            <p className='text-white text-3xl bottom-30 absolute z-20'>Username {username}</p>
-            <p className='text-white text-3xl bottom-20 absolute z-20'>Response {res}</p>
-            <p className='text-white text-3xl bottom-10 absolute z-20'>Error {error}</p>
+            <p className='text-white text-3xl bottom- absolute z-20'>Username {username}</p>
         </div>
     )
 }
