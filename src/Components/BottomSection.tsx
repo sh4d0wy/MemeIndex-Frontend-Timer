@@ -69,7 +69,7 @@ const BottomSection = () => {
       }
     } catch (error) {
       console.error('Error getting referral link:', error);
-      alert('Failed to get referral link. Please try again.');
+      alert(`Failed to get referral link. Please try again. Error: ${error}`);
     }
   };
 
