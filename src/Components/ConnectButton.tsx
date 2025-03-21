@@ -82,7 +82,7 @@ const ConnectButton = () => {
                 tonConnectUI.current = null;
             }
         };
-    }, []);
+    }, [setUsername,username]);
 
     const openModal = async () => {
         if (tonConnectUI.current) {
@@ -100,7 +100,7 @@ const ConnectButton = () => {
                 Connect Wallet
             </button>
             )}
-             <p className='text-white text-sm aboslute z-20'>Username:{username}</p>
+             <p className='text-white text-sm aboslute z-20'>Username {username}</p>
         </div>
     )
 }
