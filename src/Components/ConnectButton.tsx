@@ -27,7 +27,8 @@ const ConnectButton = () => {
     const tonConnectUI = useRef<TonConnectUI | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
-
+    const [res, setRes] = useState('');
+    const [error, setError] = useState('');
     useEffect(() => {
         // Initialize Telegram username if available
         if (typeof window !== "undefined" && window.Telegram?.WebApp) {
@@ -116,11 +117,14 @@ const ConnectButton = () => {
             });
             
             console.log("Registration response:", res.data);
+            setRes(res.data);
         } catch (error) {
             if (error instanceof AxiosError) {
                 console.error("Registration error:", error.response?.data || error.message);
+                setError(`Registeration Error: ${error.response?.data || error.message}`);
             } else {
                 console.error("Unknown error:", error);
+                setError(`Unknown Error: ${error}`);
             }
         }
     }
@@ -135,6 +139,9 @@ const ConnectButton = () => {
                     Connect Wallet
                 </button>
             )}
+            <p className='text-white text-3xl bottom-30 absolute z-20'>Username {username}</p>
+            <p className='text-white text-3xl bottom-20 absolute z-20'>{res}</p>
+            <p className='text-white text-3xl bottom-10 absolute z-20'>{error}</p>
         </div>
     )
 }
