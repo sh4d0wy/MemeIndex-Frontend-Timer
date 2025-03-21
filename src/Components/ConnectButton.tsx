@@ -101,15 +101,18 @@ const ConnectButton = () => {
             const address = await tonConnectUI.current?.account?.address;
             if (!address) {
                 console.error("No wallet address found");
+                setError("No wallet address found");
                 return;
             }
 
             if (!username) {
                 console.error("No username available");
+                setError("No username available");
                 return;
             }
 
             console.log("Registering user with:", { address, username });
+            
             const res = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
                 address: address,
                 username: username,
@@ -140,8 +143,8 @@ const ConnectButton = () => {
                 </button>
             )}
             <p className='text-white text-3xl bottom-30 absolute z-20'>Username {username}</p>
-            <p className='text-white text-3xl bottom-20 absolute z-20'>{res}</p>
-            <p className='text-white text-3xl bottom-10 absolute z-20'>{error}</p>
+            <p className='text-white text-3xl bottom-20 absolute z-20'>Response {res}</p>
+            <p className='text-white text-3xl bottom-10 absolute z-20'>Error {error}</p>
         </div>
     )
 }
