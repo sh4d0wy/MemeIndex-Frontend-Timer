@@ -1,4 +1,21 @@
 import { useState, useEffect } from 'react';
+const END_DATE = new Date('2025-05-01T00:00:00Z');
+
+const calculateTimeLeft = (): TimeLeft => {
+  const now = new Date();
+  const difference = END_DATE.getTime() - now.getTime();
+
+  if (difference <= 0) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  }
+
+  return {
+    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((difference / (1000 * 60)) % 60),
+    seconds: Math.floor((difference / 1000) % 60)
+  };
+};
 
 interface TimeLeft {
   days: number;
@@ -8,12 +25,7 @@ interface TimeLeft {
 }
 
 const Timer = () => {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>({
-    days: 23,
-    hours: 12,
-    minutes: 23,
-    seconds: 23
-  });
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft());
 
   useEffect(() => {
     const timer = setInterval(() => {
