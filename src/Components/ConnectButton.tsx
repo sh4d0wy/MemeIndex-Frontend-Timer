@@ -13,6 +13,7 @@ declare global {
                         first_name?: string;
                         last_name?: string;
                         username?: string;
+                        photo_url?: string;
                     };
                 };
                 ready?: () => void;
@@ -26,6 +27,7 @@ const ConnectButton = () => {
     const tonConnectUI = useRef<TonConnectUI | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
+    const [profilePicture, setProfilePicture] = useState('');
     useEffect(() => {
         // Use existing instance or create new one
         if (!tonConnectUIInstance) {
@@ -60,6 +62,7 @@ const ConnectButton = () => {
                 if (typeof window !== "undefined" && window.Telegram?.WebApp) {
                     const tg = window.Telegram.WebApp;
                     setUsername(tg.initDataUnsafe?.user?.username || '');
+                    setProfilePicture(tg.initDataUnsafe?.user?.photo_url || '');
                     console.log("Telegram Username:", username);
                 } else {
                     console.log("Telegram Web App API is not available.");
@@ -101,6 +104,7 @@ const ConnectButton = () => {
             </button>
             )}
              <p className='text-white text-sm aboslute z-20'>Username {username}</p>
+             <img src={profilePicture} alt="Profile Picture" className='w-10 h-10 rounded-full absolute top-0 right-0 z-20' />
         </div>
     )
 }
