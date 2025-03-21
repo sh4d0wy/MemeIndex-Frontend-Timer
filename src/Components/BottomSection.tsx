@@ -47,10 +47,13 @@ const BottomSection = () => {
         return;
       }
 
+      alert(`Debug - Telegram ID: ${telegramId}`); // Debug alert
+
       // Get referral link and stats
       const response = await axios.get(`https://backend-4hpn.onrender.com/api/referral/link/${walletAddress}`);
-      const statsResponse = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`);
+      alert(`Debug - Referral Code: ${response.data.referralCode}`); // Debug alert
       
+      const statsResponse = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`);
       setReferralCount(statsResponse.data.referralCount || 0);
 
       // First, get the template message sent to the user
@@ -66,10 +69,21 @@ const BottomSection = () => {
             `tg://msg?text=forward=${templateResponse.data.messageId}`
           );
         }
+      } else {
+        alert(`Template Response Error: ${JSON.stringify(templateResponse.data)}`);
       }
     } catch (error) {
-      console.error('Error getting referral link:', error);
-      alert(`Failed to get referral link. Please try again. Error: ${error}`);
+      if (axios.isAxiosError(error)) {
+        const errorDetails = {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          message: error.message
+        };
+        alert(`Request failed:\nStatus: ${errorDetails.status}\nMessage: ${errorDetails.message}\nData: ${JSON.stringify(errorDetails.data)}`);
+      } else {
+        alert(`Unknown error: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
   };
 
