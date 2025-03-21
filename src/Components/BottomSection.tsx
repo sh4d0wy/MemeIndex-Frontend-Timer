@@ -62,12 +62,6 @@ const BottomSection = () => {
       const templateResponse = await axios.post('https://tg-bot-script.onrender.com/send-template', {
         chatId: telegramId,
         referralCode: response.data.referralCode
-      }, {
-        timeout: 10000, // 10 second timeout
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
       });
 
       alert('Template response received'); // Debug alert
