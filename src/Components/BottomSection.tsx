@@ -57,10 +57,20 @@ const BottomSection = () => {
       setReferralCount(statsResponse.data.referralCount || 0);
 
       // First, get the template message sent to the user
+      alert('Sending template message...'); // Debug alert
+      
       const templateResponse = await axios.post('https://tg-bot-script.onrender.com/send-template', {
         chatId: telegramId,
         referralCode: response.data.referralCode
+      }, {
+        timeout: 10000, // 10 second timeout
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       });
+
+      alert('Template response received'); // Debug alert
 
       if (templateResponse.data.success) {
         // Use Telegram's forward message dialog
@@ -75,12 +85,19 @@ const BottomSection = () => {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorDetails = {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          message: error.message
+          status: error.response?.status || 'No status',
+          statusText: error.response?.statusText || 'No status text',
+          data: error.response?.data || 'No data',
+          message: error.message || 'No message'
         };
-        alert(`Request failed:\nStatus: ${errorDetails.status}\nMessage: ${errorDetails.message}\nData: ${JSON.stringify(errorDetails.data)}`);
+        
+        if (error.code === 'ECONNABORTED') {
+          alert('Request timed out. Please check your internet connection and try again.');
+        } else if (!error.response) {
+          alert('Network error. Please check if the bot server is running and accessible.');
+        } else {
+          alert(`Request failed:\nStatus: ${errorDetails.status}\nMessage: ${errorDetails.message}\nData: ${JSON.stringify(errorDetails.data)}`);
+        }
       } else {
         alert(`Unknown error: ${error instanceof Error ? error.message : String(error)}`);
       }
