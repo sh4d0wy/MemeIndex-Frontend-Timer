@@ -100,7 +100,7 @@ const ConnectButton = () => {
                 Connect Wallet
             </button>
             )}
-            {(username &&username.length >0) && <p className='text-white text-sm'>Username:{username}</p>}
+             <p className='text-white text-sm aboslute z-20'>Username:{username}</p>
         </div>
     )
 }
