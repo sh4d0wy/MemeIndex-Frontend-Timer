@@ -25,6 +25,7 @@ declare global {
 const ConnectButton = () => {
     const tonConnectUI = useRef<TonConnectUI | null>(null);
     const [isConnected, setIsConnected] = useState(false);
+    let username = '';
     useEffect(() => {
         // Use existing instance or create new one
         if (!tonConnectUIInstance) {
@@ -58,7 +59,7 @@ const ConnectButton = () => {
                 setIsConnected(true);
                 if (typeof window !== "undefined" && window.Telegram?.WebApp) {
                     const tg = window.Telegram.WebApp;
-                    const username = tg.initDataUnsafe?.user?.username;
+                    username = tg.initDataUnsafe?.user?.username || '';
                     console.log("Telegram Username:", username);
                 } else {
                     console.log("Telegram Web App API is not available.");
@@ -99,6 +100,7 @@ const ConnectButton = () => {
                 Connect Wallet
             </button>
             )}
+            {(username &&username.length >0) && <p className='text-white text-sm'>Username:{username}</p>}
         </div>
     )
 }
