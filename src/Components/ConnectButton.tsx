@@ -4,26 +4,30 @@ import axios, { AxiosError } from 'axios';
 
 // Singleton instance
 let tonConnectUIInstance: TonConnectUI | null = null;
-declare global {
-    interface Window {
-        Telegram?: {
-            WebApp?: {
-                initDataUnsafe?: {
-                    user?: {
-                        id?: number;
-                        first_name?: string;
-                        last_name?: string;
-                        username?: string;
-                        photo_url?: string;
-                    };
-                };
-                ready?: () => void;
-            };
-        };
-    }
+// declare global {
+//     interface Window {
+//         Telegram?: {
+//             WebApp?: {
+//                 initDataUnsafe?: {
+//                     user?: {
+//                         id?: number;
+//                         first_name?: string;
+//                         last_name?: string;
+//                         username?: string;
+//                         photo_url?: string;
+//                     };
+//                 };
+//                 ready?: () => void;
+//             };
+//         };
+//     }
+// }
+
+interface ConnectButtonProps {
+    onAddressChange?: (address: string | undefined) => void;
 }
 
-const ConnectButton = () => {
+const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
     const tonConnectUI = useRef<TonConnectUI | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
@@ -49,6 +53,7 @@ const ConnectButton = () => {
             });
             
             console.log("Registration response:", res.data);
+            onAddressChange?.(address);
         } catch (error) {
             if (error instanceof AxiosError) {
                 console.error("Registration error:", error.response?.data || error.message);
@@ -56,7 +61,7 @@ const ConnectButton = () => {
                 console.error("Unknown error:", error);
             }
         }
-    }, [username]); // Only depend on username
+    }, [username, onAddressChange]);
 
     useEffect(() => {
         // Initialize Telegram username if available
@@ -93,6 +98,8 @@ const ConnectButton = () => {
                 console.log("Connected:", await tonConnectUI.current?.connected);
                 console.log("Wallet:", await tonConnectUI.current?.wallet);
                 console.log("Account:", await tonConnectUI.current?.account);
+                const address = await tonConnectUI.current?.account?.address;
+                onAddressChange?.(address);
                 // Wait a bit to ensure username is set
                 setTimeout(handleConnect, 1000);
             }
@@ -107,11 +114,14 @@ const ConnectButton = () => {
                 console.log("Wallet:", await tonConnectUI.current?.wallet);
                 console.log("Account:", await tonConnectUI.current?.account);
                 setIsConnected(true);
+                const address = await tonConnectUI.current?.account?.address;
+                onAddressChange?.(address);
                 // Wait a bit to ensure username is set
                 setTimeout(handleConnect, 1000);
             } else {
                 console.log("Wallet Disconnected!");
                 setIsConnected(false);
+                onAddressChange?.(undefined);
             }
         });
 
@@ -125,7 +135,7 @@ const ConnectButton = () => {
                 tonConnectUI.current = null;
             }
         };
-    }, [handleConnect]); // Only depend on handleConnect
+    }, [handleConnect, onAddressChange]);
 
     const openModal = async () => {
         if (tonConnectUI.current) {
@@ -143,7 +153,6 @@ const ConnectButton = () => {
                     Connect Wallet
                 </button>
             )}
-            <p className='text-white text-3xl bottom- absolute z-20'>Username {username}</p>
         </div>
     )
 }
