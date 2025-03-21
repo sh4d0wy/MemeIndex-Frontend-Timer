@@ -52,26 +52,22 @@ const BottomSection = () => {
       const statsResponse = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`);
       setReferralCount(statsResponse.data.referralCount || 0);
 
-      // Create the message text
-      const messageText = 
-        `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
-        `Let's open it together!\n\n` +
-        `💰 Join now and receive:\n` +
-        `• 2 FREE votes for joining\n` +
-        `• Access to exclusive meme token listings\n` +
-        `• Early voting privileges`;
+      // First, get the template message sent to the user
+      const templateResponse = await axios.post('https://tg-bot-script.onrender.com/send-template', {
+        chatId: telegramId,
+        referralCode: response.data.referralCode
+      });
 
-      // Create the bot link
-      const botLink = `https://t.me/${response.data.botUsername}?start=${response.data.referralCode}`;
-
-      // Use Telegram's native sharing
-      if (window.Telegram?.WebApp) {
-        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(messageText)}`;
-        window.Telegram.WebApp.openTelegramLink(shareUrl);
+      if (templateResponse.data.success) {
+        // Open Telegram's forward dialog for the sent message
+        if (window.Telegram?.WebApp) {
+          // Use Telegram's native forward mechanism
+          window.Telegram.WebApp.openTelegramLink(
+            `tg://share/message?mid=${templateResponse.data.messageId}&chat_id=${telegramId}`
+          );
+        }
       } else {
-        // Fallback to clipboard
-        await navigator.clipboard.writeText(`${messageText}\n${botLink}`);
-        alert('Share link copied to clipboard!');
+        alert('Failed to send invitation message. Please try again.');
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
