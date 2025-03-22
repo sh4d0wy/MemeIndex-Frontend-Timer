@@ -188,8 +188,23 @@ const BottomSection = () => {
       // Use switchInlineQuery to share the message
       if (window.Telegram?.WebApp) {
         try {
+          // First check if inline mode is supported
+          if (!window.Telegram.WebApp.isVersionAtLeast('6.0')) {
+            throw new Error('Inline mode not supported');
+          }
+
+          // Use the bot's username from the response
+          const botUsername = response.data.botUsername;
+          if (!botUsername) {
+            throw new Error('Bot username not found');
+          }
+
+          // Create the inline query text
+          const inlineQueryText = `${botUsername} ${response.data.referralCode}`;
+          
+          // Call switchInlineQuery with the proper format
           window.Telegram.WebApp.switchInlineQuery(
-            response.data.referralCode,
+            inlineQueryText,
             ['users', 'groups', 'channels']
           );
         } catch (inlineError) {
