@@ -1,6 +1,6 @@
 import ConnectButton from './ConnectButton'
 import { FaTelegram } from 'react-icons/fa'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 
 declare global {
@@ -101,6 +101,53 @@ const BottomSection = () => {
   const [walletAddress, setWalletAddress] = useState<string | undefined>();
   const [referralCount, setReferralCount] = useState(0);
 
+  // Add useEffect to handle referral code on app launch
+  useEffect(() => {
+    const handleReferralCode = async () => {
+      try {
+        // Get the referral code from the URL if it exists
+        const urlParams = new URLSearchParams(window.location.search);
+        const referralCode = urlParams.get('ref');
+        
+        if (referralCode) {
+          // Store the referral code in localStorage
+          localStorage.setItem('pendingReferralCode', referralCode);
+        }
+      } catch (error) {
+        console.error('Error handling referral code:', error);
+      }
+    };
+
+    handleReferralCode();
+  }, []);
+
+  // Add function to apply referral code when wallet is connected
+  const applyReferralCode = async (address: string) => {
+    try {
+      const pendingReferralCode = localStorage.getItem('pendingReferralCode');
+      if (pendingReferralCode) {
+        // Apply the referral code
+        await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
+          address,
+          referralCode: pendingReferralCode
+        });
+        
+        // Clear the pending referral code
+        localStorage.removeItem('pendingReferralCode');
+      }
+    } catch (error) {
+      console.error('Error applying referral code:', error);
+    }
+  };
+
+  // Update the wallet address handler
+  const handleWalletAddressChange = async (address: string | undefined) => {
+    setWalletAddress(address);
+    if (address) {
+      await applyReferralCode(address);
+    }
+  };
+
   const handleGetReferralLink = async () => {
     if (!walletAddress) {
       alert('Please connect your wallet first');
@@ -180,20 +227,22 @@ const BottomSection = () => {
       // Get the bot link that others will use to join
       const botLink = response.data.referralLink;
       
+      // Use the same formatted message as the bot
+      const messageText = 
+        `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
+        `Let's open it together!\n\n` +
+        `💰 Join now and receive:\n` +
+        `• 2 FREE votes for joining\n` +
+        `• Access to exclusive meme token listings\n` +
+        `• Early voting privileges\n\n` +
+        `Click here to join: ${botLink}`;
+      
       if (window.Telegram?.WebApp) {
-        // Simple share message for the small button
-        const messageText = `Join MemeIndex with my referral link:`;
-        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(messageText)}`;
-        window.Telegram.WebApp.openTelegramLink(shareUrl);
-      } else {
-        // Fallback to clipboard
-        const messageText = `🚀 Join me on MemeIndex!\n\n💰 Get free votes when you join using my referral link\n🎁 You'll receive 2 votes, and I'll get 5 votes\n\nClick here to start:\n${botLink}`;
         await navigator.clipboard.writeText(messageText);
         alert('Share link copied to clipboard!');
       }
     } catch (error) {
       console.error('Error sharing:', error);
-      alert('Failed to share. Please try again.');
     }
   };
 
@@ -205,7 +254,7 @@ const BottomSection = () => {
           <FaTelegram className='text-3xl'/> 
           <span>@MemeIndex</span>
       </div>
-      <ConnectButton onAddressChange={setWalletAddress}/>
+      <ConnectButton onAddressChange={handleWalletAddressChange}/>
       <div className='flex gap-2'>
         <button 
           onClick={handleGetReferralLink}
