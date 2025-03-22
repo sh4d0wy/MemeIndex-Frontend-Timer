@@ -105,13 +105,16 @@ const BottomSection = () => {
   useEffect(() => {
     const handleReferralCode = async () => {
       try {
-        // Get the referral code from the URL if it exists
-        const urlParams = new URLSearchParams(window.location.search);
-        const referralCode = urlParams.get('ref');
-        
-        if (referralCode) {
-          // Store the referral code in localStorage
-          localStorage.setItem('pendingReferralCode', referralCode);
+        // Get the referral code from Telegram's start_param
+        const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
+        if (startParam) {
+          // Store the referral code in Telegram's MainButton params
+          window.Telegram?.WebApp?.MainButton.setText('Connect Wallet to Apply Referral');
+          window.Telegram?.WebApp?.MainButton.show();
+          window.Telegram?.WebApp?.MainButton.onClick(() => {
+            // The referral code will be applied when wallet is connected
+            window.Telegram?.WebApp?.MainButton.hide();
+          });
         }
       } catch (error) {
         console.error('Error handling referral code:', error);
@@ -121,30 +124,27 @@ const BottomSection = () => {
     handleReferralCode();
   }, []);
 
-  // Add function to apply referral code when wallet is connected
-  const applyReferralCode = async (address: string) => {
-    try {
-      const pendingReferralCode = localStorage.getItem('pendingReferralCode');
-      if (pendingReferralCode) {
-        // Apply the referral code
-        await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
-          address,
-          referralCode: pendingReferralCode
-        });
-        
-        // Clear the pending referral code
-        localStorage.removeItem('pendingReferralCode');
-      }
-    } catch (error) {
-      console.error('Error applying referral code:', error);
-    }
-  };
-
   // Update the wallet address handler
   const handleWalletAddressChange = async (address: string | undefined) => {
     setWalletAddress(address);
     if (address) {
-      await applyReferralCode(address);
+      try {
+        // Get the referral code from start_param
+        const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
+        if (startParam) {
+          // Apply the referral code
+          await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
+            address,
+            referralCode: startParam
+          });
+          
+          // Show success message
+          window.Telegram?.WebApp?.showAlert('Referral code applied successfully!');
+        }
+      } catch (error) {
+        console.error('Error applying referral code:', error);
+        window.Telegram?.WebApp?.showAlert('Failed to apply referral code. Please try again.');
+      }
     }
   };
 
