@@ -14,15 +14,82 @@ declare global {
             last_name?: string;
             username?: string;
             photo_url?: string;
+            language_code?: string;
           };
+          auth_date?: number;
+          hash?: string;
+          query_id?: string;
+          start_param?: string;
         };
         ready?: () => void;
+        expand?: () => void;
+        close?: () => void;
         openTelegramLink: (url: string) => void;
+        openLink: (url: string, options?: { try_instant_view?: boolean }) => void;
+        openInvoice: (url: string, callback?: (status: string) => void) => void;
+        showPopup: (params: { 
+          title?: string;
+          message: string;
+          buttons?: Array<{
+            id?: string;
+            type?: 'default' | 'ok' | 'close' | 'cancel' | 'destructive';
+            text?: string;
+          }>;
+        }, callback?: (buttonId: string) => void) => void;
+        showAlert: (message: string, callback?: () => void) => void;
+        showConfirm: (message: string, callback?: (confirmed: boolean) => void) => void;
+        enableClosingConfirmation: () => void;
+        disableClosingConfirmation: () => void;
+        isVersionAtLeast: (version: string) => boolean;
+        setHeaderColor: (color: string) => void;
+        setBackgroundColor: (color: string) => void;
         MainButton: {
           text: string;
+          color: string;
+          textColor: string;
+          isVisible: boolean;
+          isActive: boolean;
+          isProgressVisible: boolean;
           show: () => void;
           hide: () => void;
+          enable: () => void;
+          disable: () => void;
+          showProgress: (leaveActive?: boolean) => void;
+          hideProgress: () => void;
           onClick: (callback: () => void) => void;
+          offClick: (callback: () => void) => void;
+          setText: (text: string) => void;
+          setParams: (params: {
+            text?: string;
+            color?: string;
+            text_color?: string;
+            is_active?: boolean;
+            is_visible?: boolean;
+          }) => void;
+        };
+        BackButton: {
+          isVisible: boolean;
+          onClick: (callback: () => void) => void;
+          offClick: (callback: () => void) => void;
+          show: () => void;
+          hide: () => void;
+        };
+        HapticFeedback: {
+          impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void;
+          notificationOccurred: (type: 'error' | 'success' | 'warning') => void;
+          selectionChanged: () => void;
+        };
+        platform: string;
+        version: string;
+        colorScheme: 'light' | 'dark';
+        themeParams: {
+          bg_color?: string;
+          text_color?: string;
+          hint_color?: string;
+          link_color?: string;
+          button_color?: string;
+          button_text_color?: string;
+          secondary_bg_color?: string;
         };
       };
     };
@@ -35,6 +102,7 @@ const BottomSection = () => {
 
   const handleGetReferralLink = async () => {
     if (!walletAddress) {
+      // Use regular alert for v6 compatibility
       alert('Please connect your wallet first');
       return;
     }
@@ -61,7 +129,7 @@ const BottomSection = () => {
       if (templateResponse.data.success) {
         // Open Telegram's forward dialog for the sent message
         if (window.Telegram?.WebApp) {
-          // Use Telegram's native forward mechanism
+          // Use openTelegramLink for v6 compatibility
           window.Telegram.WebApp.openTelegramLink(
             `tg://share/message?mid=${templateResponse.data.messageId}&chat_id=${telegramId}`
           );
@@ -83,7 +151,7 @@ const BottomSection = () => {
         } else if (!error.response) {
           alert('Network error. Please check if the bot server is running and accessible.');
         } else {
-          alert(`Request failed:\nStatus: ${errorDetails.status}\nMessage: ${errorDetails.message}\nData: ${JSON.stringify(errorDetails.data)}`);
+          alert(`Request failed: ${errorDetails.message}`);
         }
       } else {
         alert(`Unknown error: ${error instanceof Error ? error.message : String(error)}`);
