@@ -143,9 +143,9 @@ const BottomSection = () => {
       if (templateResponse.data.success) {
         // Open Telegram's forward dialog for the sent message
         if (window.Telegram?.WebApp) {
-          window.Telegram.WebApp.openTelegramLink(
-            `tg://share/message?mid=${templateResponse.data.messageId}&chat_id=${telegramId}`
-          );
+          // Use the correct URL format for sharing messages
+          const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(`https://t.me/c/${telegramId}/${templateResponse.data.messageId}`)}`;
+          window.Telegram.WebApp.openTelegramLink(shareUrl);
         }
       } else {
         alert('Failed to send invitation message. Please try again.');
