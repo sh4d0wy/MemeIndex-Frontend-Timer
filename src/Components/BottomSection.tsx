@@ -141,12 +141,11 @@ const BottomSection = () => {
       });
 
       if (templateResponse.data.success) {
-        // Open Telegram's forward dialog for the sent message
+        // Forward the message using Telegram's native forward dialog
         if (window.Telegram?.WebApp) {
-          // Use the bot's direct message URL format
-          const botUsername = response.data.botUsername;
-          const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(`https://t.me/${botUsername}?start=${response.data.referralCode}`)}&text=${encodeURIComponent('Join MemeIndex with my referral link! 🚀')}`;
-          window.Telegram.WebApp.openTelegramLink(shareUrl);
+          window.Telegram.WebApp.openTelegramLink(
+            `tg://forward?to=@${response.data.botUsername}&msg_id=${templateResponse.data.messageId}`
+          );
         }
       } else {
         alert('Failed to send invitation message. Please try again.');
