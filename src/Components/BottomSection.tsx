@@ -193,18 +193,9 @@ const BottomSection = () => {
             throw new Error('Inline mode not supported');
           }
 
-          // Use the bot's username from the response
-          const botUsername = response.data.botUsername;
-          if (!botUsername) {
-            throw new Error('Bot username not found');
-          }
-
-          // Create the inline query text
-          const inlineQueryText = `${botUsername} ${response.data.referralCode}`;
-          
-          // Call switchInlineQuery with the proper format
+          // Create the inline query text with just the referral code
           window.Telegram.WebApp.switchInlineQuery(
-            inlineQueryText,
+            response.data.referralCode,
             ['users', 'groups', 'channels']
           );
         } catch (inlineError) {
