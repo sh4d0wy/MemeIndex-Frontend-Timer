@@ -102,7 +102,6 @@ const BottomSection = () => {
 
   const handleGetReferralLink = async () => {
     if (!walletAddress) {
-      // Use regular alert for v6 compatibility
       alert('Please connect your wallet first');
       return;
     }
@@ -115,21 +114,35 @@ const BottomSection = () => {
         return;
       }
 
-      // Get referral link and stats
-      const response = await axios.get(`https://backend-4hpn.onrender.com/api/referral/link/${walletAddress}`);
-      const statsResponse = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`);
+      // Add loading state
+      const button = document.querySelector('button:first-child');
+      if (button) {
+        button.setAttribute('disabled', 'true');
+      }
+
+      // Get referral link and stats with timeout
+      const [response, statsResponse] = await Promise.all([
+        axios.get(`https://backend-4hpn.onrender.com/api/referral/link/${walletAddress}`, {
+          timeout: 10000 // 10 second timeout
+        }),
+        axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`, {
+          timeout: 10000
+        })
+      ]);
+
       setReferralCount(statsResponse.data.referralCount || 0);
 
       // First, get the template message sent to the user
       const templateResponse = await axios.post('https://tg-bot-script.onrender.com/send-template', {
         chatId: telegramId,
         referralCode: response.data.referralCode
+      }, {
+        timeout: 10000
       });
 
       if (templateResponse.data.success) {
         // Open Telegram's forward dialog for the sent message
         if (window.Telegram?.WebApp) {
-          // Use openTelegramLink for v6 compatibility
           window.Telegram.WebApp.openTelegramLink(
             `tg://share/message?mid=${templateResponse.data.messageId}&chat_id=${telegramId}`
           );
@@ -139,22 +152,28 @@ const BottomSection = () => {
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const errorDetails = {
-          status: error.response?.status || 'No status',
-          statusText: error.response?.statusText || 'No status text',
-          data: error.response?.data || 'No data',
-          message: error.message || 'No message'
-        };
-        
         if (error.code === 'ECONNABORTED') {
           alert('Request timed out. Please check your internet connection and try again.');
         } else if (!error.response) {
-          alert('Network error. Please check if the bot server is running and accessible.');
+          // Network error - check if it's a CORS issue
+          if (error.message.includes('CORS')) {
+            alert('Unable to connect to the server. Please try again later.');
+          } else {
+            alert('Network error. Please check your internet connection and try again.');
+          }
         } else {
-          alert(`Request failed: ${errorDetails.message}`);
+          // Server responded with error
+          const errorMessage = error.response.data?.message || error.message;
+          alert(`Error: ${errorMessage}`);
         }
       } else {
-        alert(`Unknown error: ${error instanceof Error ? error.message : String(error)}`);
+        alert(`An unexpected error occurred: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    } finally {
+      // Remove loading state
+      const button = document.querySelector('button:first-child');
+      if (button) {
+        button.removeAttribute('disabled');
       }
     }
   };
