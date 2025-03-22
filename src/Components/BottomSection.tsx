@@ -43,6 +43,7 @@ declare global {
         isVersionAtLeast: (version: string) => boolean;
         setHeaderColor: (color: string) => void;
         setBackgroundColor: (color: string) => void;
+        switchInlineQuery: (query: string, target_chat_types?: Array<'users' | 'groups' | 'channels'>) => void;
         MainButton: {
           text: string;
           color: string;
@@ -132,23 +133,12 @@ const BottomSection = () => {
 
       setReferralCount(statsResponse.data.referralCount || 0);
 
-      // First, get the template message sent to the user
-      const templateResponse = await axios.post('https://tg-bot-script.onrender.com/send-template', {
-        chatId: telegramId,
-        referralCode: response.data.referralCode
-      }, {
-        timeout: 10000
-      });
-
-      if (templateResponse.data.success) {
-        // Forward the message using Telegram's native forward dialog
-        if (window.Telegram?.WebApp) {
-          window.Telegram.WebApp.openTelegramLink(
-            `tg://forward?to=@${response.data.botUsername}&msg_id=${templateResponse.data.messageId}`
-          );
-        }
-      } else {
-        alert('Failed to send invitation message. Please try again.');
+      // Use switchInlineQuery to share the message
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.switchInlineQuery(
+          response.data.referralCode,
+          ['users', 'groups', 'channels']
+        );
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
