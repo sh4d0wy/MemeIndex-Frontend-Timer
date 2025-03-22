@@ -171,35 +171,50 @@ const BottomSection = () => {
       // Get referral link and stats with timeout
       const [response, statsResponse] = await Promise.all([
         axios.get(`https://backend-4hpn.onrender.com/api/referral/link/${walletAddress}`, {
-          timeout: 10000 // 10 second timeout
+          timeout: 5000
         }),
         axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`, {
-          timeout: 10000
+          timeout: 5000
         })
       ]);
 
       setReferralCount(statsResponse.data.referralCount || 0);
 
+      // Check if we have a valid referral code
+      if (!response.data.referralCode) {
+        throw new Error('No referral code received');
+      }
+
       // Use switchInlineQuery to share the message
       if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.switchInlineQuery(
-          response.data.referralCode,
-          ['users', 'groups', 'channels']
-        );
+        try {
+          window.Telegram.WebApp.switchInlineQuery(
+            response.data.referralCode,
+            ['users', 'groups', 'channels']
+          );
+        } catch (inlineError) {
+          console.error('Inline query error:', inlineError);
+          // Fallback to regular sharing if inline query fails
+          const messageText = 
+            `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
+            `Let's open it together!\n\n` +
+            `💰 Join now and receive:\n` +
+            `• 2 FREE votes for joining\n` +
+            `• Access to exclusive meme token listings\n` +
+            `• Early voting privileges\n\n` +
+            `Click here to join: ${response.data.referralLink}`;
+          
+          await navigator.clipboard.writeText(messageText);
+          alert('Share link copied to clipboard!');
+        }
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.code === 'ECONNABORTED') {
           alert('Request timed out. Please check your internet connection and try again.');
         } else if (!error.response) {
-          // Network error - check if it's a CORS issue
-          if (error.message.includes('CORS')) {
-            alert('Unable to connect to the server. Please try again later.');
-          } else {
-            alert('Network error. Please check your internet connection and try again.');
-          }
+          alert('Network error. Please check your internet connection and try again.');
         } else {
-          // Server responded with error
           const errorMessage = error.response.data?.message || error.message;
           alert(`Error: ${errorMessage}`);
         }
