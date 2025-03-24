@@ -32,23 +32,40 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
     const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
 
+    // First, let's handle Telegram username initialization
+    useEffect(() => {
+        const tg = window.Telegram?.WebApp;
+        const telegramUsername = tg?.initDataUnsafe?.user?.username;
+        const telegramId = tg?.initDataUnsafe?.user?.id;
+        
+        if (!telegramUsername || !telegramId) {
+            window.Telegram?.WebApp?.showAlert("Please open this app in Telegram");
+            return;
+        }
+        
+        // Use Telegram username directly
+        setUsername(telegramUsername);
+    }, []);
+
     const handleConnect = useCallback(async () => {
         try {
             const address = await tonConnectUI.current?.account?.address;
             if (!address) {
-                window.Telegram?.WebApp?.showAlert("No wallet address found");
+                window.Telegram?.WebApp?.showAlert("Please connect your wallet first");
                 return;
             }
 
-            if (!username) {
-                window.Telegram?.WebApp?.showAlert("No username available");
+            const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+            if (!telegramId || !username) {
+                window.Telegram?.WebApp?.showAlert("Please open this app in Telegram");
                 return;
             }
 
-            // Make registration request
+            // Make registration request with Telegram info
             const res = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
-                address: address,
-                username: username,
+                address,
+                username,
+                telegramId,
                 referralCode: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
             });
             
@@ -64,23 +81,6 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             }
         }
     }, [username, onAddressChange]);
-
-    useEffect(() => {
-        // Initialize Telegram username if available
-        if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-            const tg = window.Telegram.WebApp;
-            const telegramUsername = tg.initDataUnsafe?.user?.username;
-            if (telegramUsername) {
-                setUsername(telegramUsername);
-            } else {
-                // Fallback if no Telegram username
-                setUsername('User_' + Math.random().toString(36).substring(2, 8));
-            }
-        } else {
-            // If not in Telegram, create a random username
-            setUsername('User_' + Math.random().toString(36).substring(2, 8));
-        }
-    }, []); // Run only once on mount
 
     useEffect(() => {
         // Use existing instance or create new one
