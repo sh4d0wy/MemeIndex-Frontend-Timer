@@ -202,65 +202,78 @@ const BottomSection = () => {
         throw new Error('No referral code received');
       }
 
-      // Use the shareMessage method if the app version supports it
-      if (window.Telegram?.WebApp?.isVersionAtLeast('6.4')) {
-        try {
-          // Create message data for sharing
+      // Create the message data for sharing
+      const messageText = 
+        `Hidden door to the MemeIndex Treasury found... Let's open it together!`;
+
+      try {
+        // Check if app version supports shareMessage (added in Telegram Bot API 8.0)
+        // Using optional chaining to safely check for the method
+        if (typeof window.Telegram?.WebApp?.shareMessage === 'function') {
+          console.log("Using shareMessage method");
+          
+          // Prepare the message data
           const messageData = {
+            text: messageText,
             button: {
               text: 'Unlock the Treasury',
               url: response.data.referralLink
-            },
-            text: 'Hidden door to the MemeIndex Treasury found... Let\'s open it together!'
-          };
-
-          // Share the message without closing the app
-          window.Telegram?.WebApp?.shareMessage(messageData);
-        } catch {
-          // Fallback to confirmation dialog
-          fallbackShare();
-        }
-      } else {
-        // Fallback for older versions
-        fallbackShare();
-      }
-      
-      function fallbackShare() {
-        // Create the message text
-        const messageText = 
-          `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
-          `Let's open it together!\n\n` +
-          `💰 Join now and receive:\n` +
-          `• 2 FREE votes for joining\n` +
-          `• Access to exclusive meme token listings\n` +
-          `• Early voting privileges\n\n` +
-          `Click here to join: ${response.data.referralLink}`;
-        
-        window.Telegram?.WebApp?.showConfirm(
-          "How would you like to share your invitation?", 
-          (confirmed) => {
-            if (confirmed) {
-              // Share via Telegram's interface (will close the app)
-              try {
-                window.Telegram?.WebApp?.switchInlineQuery(
-                  response.data.referralCode,
-                  ['users', 'groups', 'channels']
-                );
-              } catch {
-                window.Telegram?.WebApp?.showAlert('Failed to open sharing. Please try using clipboard instead.');
-              }
-            } else {
-              // Copy to clipboard (stays in the app)
-              navigator.clipboard.writeText(messageText)
-                .then(() => {
-                  window.Telegram?.WebApp?.showAlert("Copied to clipboard! You can now paste and send it to your friends.");
-                })
-                .catch(() => {
-                  window.Telegram?.WebApp?.showAlert("Failed to copy to clipboard. Please try again.");
-                });
             }
+          };
+          
+          // Use the shareMessage method
+          window.Telegram?.WebApp?.shareMessage(messageData);
+          
+          // Listen for the shareMessageSent event (if available)
+          if (window.addEventListener) {
+            window.addEventListener('shareMessageSent', () => {
+              console.log('Message shared successfully');
+            }, { once: true });
+            
+            window.addEventListener('shareMessageFailed', () => {
+              console.log('Failed to share message, falling back to inline query');
+              fallbackToInlineQuery();
+            }, { once: true });
           }
-        );
+        } else {
+          console.log("shareMessage not available, using inline query");
+          fallbackToInlineQuery();
+        }
+      } catch (error) {
+        console.error("Error in sharing:", error);
+        fallbackToInlineQuery();
+      }
+
+      // Fallback to inline query method
+      function fallbackToInlineQuery() {
+        try {
+          console.log("Using switchInlineQuery with code:", response.data.referralCode);
+          window.Telegram?.WebApp?.switchInlineQuery(
+            response.data.referralCode,
+            ['users', 'groups', 'channels']
+          );
+        } catch (error) {
+          console.error("Error using switchInlineQuery:", error);
+          
+          // Fallback to clipboard
+          const fullMessageText = 
+            `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
+            `Let's open it together!\n\n` +
+            `💰 Join now and receive:\n` +
+            `• 2 FREE votes for joining\n` +
+            `• Access to exclusive meme token listings\n` +
+            `• Early voting privileges\n\n` +
+            `Click here to join: ${response.data.referralLink}`;
+            
+          navigator.clipboard.writeText(fullMessageText)
+            .then(() => {
+              window.Telegram?.WebApp?.showAlert("Copied to clipboard! You can now paste and send it to your friends.");
+            })
+            .catch((error) => {
+              console.error("Clipboard error:", error);
+              window.Telegram?.WebApp?.showAlert("Failed to share. Please try again later.");
+            });
+        }
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -273,6 +286,7 @@ const BottomSection = () => {
           window.Telegram?.WebApp?.showAlert(`Error: ${errorMessage}`);
         }
       } else {
+        console.error("Invitation error:", error);
         window.Telegram?.WebApp?.showAlert(`An unexpected error occurred: ${error instanceof Error ? error.message : String(error)}`);
       }
     } finally {
