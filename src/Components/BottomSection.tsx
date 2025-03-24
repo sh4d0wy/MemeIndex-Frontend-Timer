@@ -273,9 +273,9 @@ const BottomSection = () => {
     <div className='flex flex-col gap-4 absolute bottom-4 left-0 right-0 p-4 z-20 w-full'>
       {/* <TonConnectButton className='w-[80vh]' style={{width: '100%'}}/> */}
       <div className='text-white text-lg text-center flex items-center justify-center gap-2'>
-          <span>About MemeIndex:</span>
+          <span>About MIDAO:</span>
           <FaTelegram className='text-3xl'/> 
-          <span>@MemeIndex</span>
+          <a href="https://t.me/memeindexdao" target='_blank' rel='noreferrer'><span>@MemeIndexDao</span></a>
       </div>
       <ConnectButton onAddressChange={handleWalletAddressChange}/>
       <div className='flex gap-2'>
