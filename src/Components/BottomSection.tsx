@@ -196,32 +196,35 @@ const BottomSection = () => {
         button.setAttribute('disabled', 'true');
       }
 
-      // Get referral link and stats with timeout
-      const [response, statsResponse] = await Promise.all([
-        axios.get(`https://backend-4hpn.onrender.com/api/referral/link/${walletAddress}`, {
-          timeout: 5000
-        }),
-        axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`, {
-          timeout: 5000
-        })
-      ]);
-
-      setReferralCount(statsResponse.data.referralCount || 0);
-
-      // Check if we have a valid referral code
-      if (!response.data.referralCode) {
-        throw new Error('No referral code received');
-      }
-
-
       try {
+        // Get referral link and stats with timeout
+        const [response, statsResponse] = await Promise.all([
+          axios.get(`https://backend-4hpn.onrender.com/api/referral/link/${walletAddress}`, {
+            timeout: 5000
+          }),
+          axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`, {
+            timeout: 5000
+          })
+        ]);
+
+        setReferralCount(statsResponse.data.referralCount || 0);
+
+        // Check if we have a valid referral code
+        if (!response.data.referralCode) {
+          throw new Error('No referral code received');
+        }
+
+        // Generate a stable unique ID using telegramId and timestamp
+        const uniqueId = `msg_${telegramId}_${Date.now()}`;
+
+        try {
           const res = await axios.post(
             `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
             {
               user_id: telegramId, // Required field
               result: {
                 type: "article",
-                id: `msg_${telegramId}`, // Any unique string
+                id: uniqueId,
                 title: "Hidden door to the MemeIndex Treasury found...",
                 input_message_content: {
                   message_text: "Hidden door to the MemeIndex Treasury found... Let's open it together!"
@@ -238,21 +241,45 @@ const BottomSection = () => {
                 }
               },
               allow_user_chats: true // Optional, allows sending in private chats
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              timeout: 10000 // 10 second timeout
             }
           );
-      
-          alert("Prepared Message ID:" + res.data.result.id);
-          if(res.data.result.id) {
-            postEvent("web_app_send_prepared_message", { id: res.data.result.id});
+        
+          console.log("Prepared Message Response:", res.data);
+          
+          if(res.data && res.data.result && res.data.result.id) {
+            window.Telegram?.WebApp?.showAlert('Referral link prepared successfully!');
+            postEvent("web_app_send_prepared_message", { id: res.data.result.id });
+          } else {
+            window.Telegram?.WebApp?.showAlert('Failed to prepare message. Please try again.');
           }
-
-        } catch (error) {
-          alert("API Error:" + error);
+        } catch (error: unknown) {
+          console.error('Telegram API Error:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          window.Telegram?.WebApp?.showAlert(`Telegram API Error: ${errorMessage}`);
         }
-  } catch (error) {
-    alert("API Error:" + error);
-  }  
-};
+      } catch (error: unknown) {
+        console.error('Backend API Error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        window.Telegram?.WebApp?.showAlert(`Error fetching referral data: ${errorMessage}`);
+      }
+    } catch (error: unknown) {
+      console.error('General Error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      window.Telegram?.WebApp?.showAlert(`Error: ${errorMessage}`);
+    } finally {
+      // Always restore button state
+      const button = document.querySelector('button:first-child');
+      if (button) {
+        button.removeAttribute('disabled');
+      }
+    }
+  };
 
   const handleShareButton = async () => {
     if (!walletAddress) {
