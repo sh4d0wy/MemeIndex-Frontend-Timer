@@ -118,6 +118,7 @@ const BottomSection = () => {
         }
       } catch (error) {
         console.error('Error handling referral code:', error);
+        window.Telegram?.WebApp?.showAlert('Error handling referral code');
       }
     };
 
@@ -150,7 +151,7 @@ const BottomSection = () => {
 
   const handleGetReferralLink = async () => {
     if (!walletAddress) {
-      alert('Please connect your wallet first');
+      window.Telegram?.WebApp?.showAlert('Please connect your wallet first');
       return;
     }
   
@@ -158,7 +159,7 @@ const BottomSection = () => {
       // Get user's Telegram ID
       const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
       if (!telegramId) {
-        alert('Please open this app in Telegram');
+        window.Telegram?.WebApp?.showAlert('Please open this app in Telegram');
         return;
       }
 
@@ -198,9 +199,9 @@ const BottomSection = () => {
             response.data.referralCode,
             ['users', 'groups', 'channels']
           );
-        } catch (inlineError) {
-          console.error('Inline query error:', inlineError);
+        } catch (error) {
           // Fallback to regular sharing if inline query fails
+          console.error('Inline query error:', error);
           const messageText = 
             `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
             `Let's open it together!\n\n` +
@@ -211,21 +212,21 @@ const BottomSection = () => {
             `Click here to join: ${response.data.referralLink}`;
           
           await navigator.clipboard.writeText(messageText);
-          alert('Share link copied to clipboard!');
+          window.Telegram?.WebApp?.showAlert('Share link copied to clipboard!');
         }
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.code === 'ECONNABORTED') {
-          alert('Request timed out. Please check your internet connection and try again.');
+          window.Telegram?.WebApp?.showAlert('Request timed out. Please check your internet connection and try again.');
         } else if (!error.response) {
-          alert('Network error. Please check your internet connection and try again.');
+          window.Telegram?.WebApp?.showAlert('Network error. Please check your internet connection and try again.');
         } else {
           const errorMessage = error.response.data?.message || error.message;
-          alert(`Error: ${errorMessage}`);
+          window.Telegram?.WebApp?.showAlert(`Error: ${errorMessage}`);
         }
       } else {
-        alert(`An unexpected error occurred: ${error instanceof Error ? error.message : String(error)}`);
+        window.Telegram?.WebApp?.showAlert(`An unexpected error occurred: ${error instanceof Error ? error.message : String(error)}`);
       }
     } finally {
       // Remove loading state
