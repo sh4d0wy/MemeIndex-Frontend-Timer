@@ -203,11 +203,11 @@ const BottomSection = () => {
           title: 'Share Invitation',
           message: messageText,
           buttons: [
-            { id: 'share', type: 'default', text: 'Share' },
-            { id: 'cancel', type: 'cancel', text: 'Cancel' }
+            { type: 'default', text: 'Share' },
+            { type: 'cancel', text: 'Cancel' }
           ]
         }, async (buttonId) => {
-          if (buttonId === 'share') {
+          if (buttonId === 'Share') {
             try {
               await window.Telegram?.WebApp?.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(response.data.referralLink)}&text=${encodeURIComponent(messageText)}`);
             } catch (error) {
