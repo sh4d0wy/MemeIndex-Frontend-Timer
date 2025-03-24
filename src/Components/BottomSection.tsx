@@ -211,104 +211,46 @@ const BottomSection = () => {
         throw new Error('No referral code received');
       }
 
-      // Create the message data for sharing
-      // const messageText = 
-        // `Hidden door to the MemeIndex Treasury found... Let's open it together!`;
-
-      
-      // const inviteUrl = `https://t.me/MemeBattleArenaBot/app?startapp=${response.data.referralCode}`;
-      // window.Telegram?.WebApp?.openLink(`tg://msg_url?url=${inviteUrl}&text=${messageText}`)
-      // let messageId = null;
 
       try {
-        // const response = await axios.post(
-        //   `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
-        //   {
-        //     text: messageText,
-        //     parse_mode: "Markdown",
-        //     reply_markup: {
-        //       inline_keyboard: [
-        //         [
-        //           {
-        //             text: "Join Now 🚀",
-        //             url: `${inviteUrl}`
-        //           }
-        //         ]
-        //       ]
-        //     }
-        //   }
-        // );
-    
-        // if (response.data.ok) {
-        //   console.log("Message ID:", response.data.result.id);
-        //   messageId = response.data.result.id;
-        // } else {
-        //   console.error("Error:", response.data);
-        // }
+          const res = await axios.post(
+            `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
+            {
+              user_id: telegramId, // Required field
+              result: {
+                type: "article",
+                id: `msg_${telegramId}`, // Any unique string
+                title: "Hidden door to the MemeIndex Treasury found...",
+                input_message_content: {
+                  message_text: "Hidden door to the MemeIndex Treasury found... Let's open it together!"
+                },
+                reply_markup: {
+                  inline_keyboard: [
+                    [
+                      {
+                        text: "Join Now 🚀",
+                        url: `https://t.me/MemeBattleArenaBot/app?startapp=${response.data.referralCode}`
+                      }
+                    ]
+                  ]
+                }
+              },
+              allow_user_chats: true // Optional, allows sending in private chats
+            }
+          );
+      
+          console.log("Prepared Message ID:", res.data.result.id);
+          postEvent("web_app_send_prepared_message", { id: res.data.result.id});
+
+        } catch (error) {
+          console.error("API Error:", error);
+        }
       } catch (error) {
         console.error("API Error:", error);
       }
       
-        postEvent("web_app_send_prepared_message", { id: "GLRpuSl8YtQofdqz"});
-      
+
     
-      //   message: messageText + '\n\n' + inviteUrl,
-      //   button_text: 'Invite Friends',
-      //   request_id: 123
-      // })
-      
-      // Fallback to inline query method
-      // function fallbackToInlineQuery() {
-      //   try {
-      //     console.log("Using switchInlineQuery with code:", response.data.referralCode);
-      //     window.Telegram?.WebApp?.switchInlineQuery(
-      //       response.data.referralCode,
-      //       ['users', 'groups', 'channels']
-      //     );
-      //   } catch (error) {
-      //     console.error("Error using switchInlineQuery:", error);
-          
-      //     // Fallback to clipboard
-      //     const fullMessageText = 
-      //       `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
-      //       `Let's open it together!\n\n` +
-      //       `💰 Join now and receive:\n` +
-      //       `• 2 FREE votes for joining\n` +
-      //       `• Access to exclusive meme token listings\n` +
-      //       `• Early voting privileges\n\n` +
-      //       `Click here to join: ${response.data.referralLink}`;
-            
-      //     navigator.clipboard.writeText(fullMessageText)
-      //       .then(() => {
-      //         window.Telegram?.WebApp?.showAlert("Copied to clipboard! You can now paste and send it to your friends.");
-      //       })
-      //       .catch((error) => {
-      //         console.error("Clipboard error:", error);
-      //         window.Telegram?.WebApp?.showAlert("Failed to share. Please try again later.");
-      //       });
-      //   }
-      // }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.code === 'ECONNABORTED') {
-          window.Telegram?.WebApp?.showAlert('Request timed out. Please check your internet connection and try again.');
-        } else if (!error.response) {
-          window.Telegram?.WebApp?.showAlert('Network error. Please check your internet connection and try again.');
-        } else {
-          const errorMessage = error.response.data?.message || error.message;
-          window.Telegram?.WebApp?.showAlert(`Error: ${errorMessage}`);
-        }
-      } else {
-        console.error("Invitation error:", error);
-        window.Telegram?.WebApp?.showAlert(`An unexpected error occurred: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    } finally {
-      // Remove loading state
-      const button = document.querySelector('button:first-child');
-      if (button) {
-        button.removeAttribute('disabled');
-      }
-    }
   };
 
   const handleShareButton = async () => {

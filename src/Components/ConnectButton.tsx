@@ -4,24 +4,6 @@ import axios, { AxiosError } from 'axios';
 
 // Singleton instance
 let tonConnectUIInstance: TonConnectUI | null = null;
-// declare global {
-//     interface Window {
-//         Telegram?: {
-//             WebApp?: {
-//                 initDataUnsafe?: {
-//                     user?: {
-//                         id?: number;
-//                         first_name?: string;
-//                         last_name?: string;
-//                         username?: string;
-//                         photo_url?: string;
-//                     };
-//                 };
-//                 ready?: () => void;
-//             };
-//         };
-//     }
-// }
 
 interface ConnectButtonProps {
     onAddressChange?: (address: string | undefined) => void;
@@ -52,12 +34,12 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
     // Handle Telegram user info
     useEffect(() => {
         const tg = window.Telegram?.WebApp;
-        const telegramId = tg?.initDataUnsafe?.user?.id;
+        const tgId = tg?.initDataUnsafe?.user?.id;
         const telegramUsername = tg?.initDataUnsafe?.user?.username || 
             tg?.initDataUnsafe?.user?.first_name ||
-            `User_${telegramId}`;
+            `User_${tgId}`;
         
-        if (telegramId && telegramUsername) {
+        if (tgId && telegramUsername) {
             setUsername(telegramUsername);
         }
     }, []);
@@ -73,7 +55,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             // Check if already registered first
             const isAlreadyRegistered = await checkRegistration(address);
             if (isAlreadyRegistered) return;
-
+            
             // If not registered, register the user
             const res = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
                 address,
