@@ -239,19 +239,18 @@ const BottomSection = () => {
             }
           );
       
-          console.log("Prepared Message ID:", res.data.result.id);
-          postEvent("web_app_send_prepared_message", { id: res.data.result.id});
+          alert("Prepared Message ID:" + res.data.result.id);
+          if(res.data.result.id) {
+            postEvent("web_app_send_prepared_message", { id: res.data.result.id});
+          }
 
         } catch (error) {
           console.error("API Error:", error);
         }
-      } catch (error) {
-        console.error("API Error:", error);
-      }
-      
-
-    
-  };
+  } catch (error) {
+    console.error("API Error:", error);
+  }  
+};
 
   const handleShareButton = async () => {
     if (!walletAddress) {
