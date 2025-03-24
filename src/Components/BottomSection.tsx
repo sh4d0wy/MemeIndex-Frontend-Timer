@@ -216,7 +216,41 @@ const BottomSection = () => {
 
       
       const inviteUrl = `https://t.me/MemeBattleArenaBot/app?startapp=${response.data.referralCode}`;
-      window.Telegram?.WebApp?.openLink(`tg://msg_url?url=${inviteUrl}&text=${messageText}`)
+      // window.Telegram?.WebApp?.openLink(`tg://msg_url?url=${inviteUrl}&text=${messageText}`)
+      let messageId = null;
+
+      try {
+        const response = await axios.post(
+          `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
+          {
+            text: messageText,
+            parse_mode: "Markdown",
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "Join Now 🚀",
+                    url: `${inviteUrl}`
+                  }
+                ]
+              ]
+            }
+          }
+        );
+    
+        if (response.data.ok) {
+          console.log("Message ID:", response.data.result.id);
+          messageId = response.data.result.id;
+        } else {
+          console.error("Error:", response.data);
+        }
+      } catch (error) {
+        console.error("API Error:", error);
+      }
+      if(messageId) {
+        postEvent("web_app_send_prepared_message", { id: messageId });
+      }
+    
       //   message: messageText + '\n\n' + inviteUrl,
       //   button_text: 'Invite Friends',
       //   request_id: 123
