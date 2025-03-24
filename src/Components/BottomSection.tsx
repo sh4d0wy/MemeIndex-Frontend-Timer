@@ -121,7 +121,7 @@ const BottomSection = () => {
   postEvent("web_app_set_header_color", {
     color: "#006FFF"
   })
-  alert(window.Telegram?.WebApp?.initDataUnsafe?.user?.id);
+  
   const [walletAddress, setWalletAddress] = useState<string | undefined>();
   const [referralCount, setReferralCount] = useState(0);
 
@@ -212,45 +212,45 @@ const BottomSection = () => {
       }
 
       // Create the message data for sharing
-      const messageText = 
-        `Hidden door to the MemeIndex Treasury found... Let's open it together!`;
+      // const messageText = 
+        // `Hidden door to the MemeIndex Treasury found... Let's open it together!`;
 
       
-      const inviteUrl = `https://t.me/MemeBattleArenaBot/app?startapp=${response.data.referralCode}`;
+      // const inviteUrl = `https://t.me/MemeBattleArenaBot/app?startapp=${response.data.referralCode}`;
       // window.Telegram?.WebApp?.openLink(`tg://msg_url?url=${inviteUrl}&text=${messageText}`)
-      let messageId = null;
+      // let messageId = null;
 
       try {
-        const response = await axios.post(
-          `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
-          {
-            text: messageText,
-            parse_mode: "Markdown",
-            reply_markup: {
-              inline_keyboard: [
-                [
-                  {
-                    text: "Join Now 🚀",
-                    url: `${inviteUrl}`
-                  }
-                ]
-              ]
-            }
-          }
-        );
+        // const response = await axios.post(
+        //   `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
+        //   {
+        //     text: messageText,
+        //     parse_mode: "Markdown",
+        //     reply_markup: {
+        //       inline_keyboard: [
+        //         [
+        //           {
+        //             text: "Join Now 🚀",
+        //             url: `${inviteUrl}`
+        //           }
+        //         ]
+        //       ]
+        //     }
+        //   }
+        // );
     
-        if (response.data.ok) {
-          console.log("Message ID:", response.data.result.id);
-          messageId = response.data.result.id;
-        } else {
-          console.error("Error:", response.data);
-        }
+        // if (response.data.ok) {
+        //   console.log("Message ID:", response.data.result.id);
+        //   messageId = response.data.result.id;
+        // } else {
+        //   console.error("Error:", response.data);
+        // }
       } catch (error) {
         console.error("API Error:", error);
       }
-      if(messageId) {
-        postEvent("web_app_send_prepared_message", { id: messageId });
-      }
+      
+        postEvent("web_app_send_prepared_message", { id: "GLRpuSl8YtQofdqz"});
+      
     
       //   message: messageText + '\n\n' + inviteUrl,
       //   button_text: 'Invite Friends',
