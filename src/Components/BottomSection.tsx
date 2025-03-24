@@ -213,12 +213,12 @@ const BottomSection = () => {
 
       
       const inviteUrl = `https://t.me/MemeBattleArenaBot/app?startapp=${response.data.referralCode}`;
-      // window.Telegram?.WebApp?.openLink(`https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(messageText)}`)
-      window.Telegram?.WebApp?.showShareTgDialog({
-        message: messageText + '\n\n' + inviteUrl,
-        button_text: 'Invite Friends',
-        request_id: 123
-      })
+      window.Telegram?.WebApp?.openLink(`https://t.me/msg_url?url=${inviteUrl}&text=${encodeURIComponent(messageText)}`)
+      // window.Telegram?.WebApp?.showShareTgDialog({
+      //   message: messageText + '\n\n' + inviteUrl,
+      //   button_text: 'Invite Friends',
+      //   request_id: 123
+      // })
       
       // Fallback to inline query method
       // function fallbackToInlineQuery() {
