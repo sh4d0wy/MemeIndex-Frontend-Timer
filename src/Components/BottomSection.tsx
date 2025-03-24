@@ -121,6 +121,7 @@ const BottomSection = () => {
   postEvent("web_app_set_header_color", {
     color: "#006FFF"
   })
+  alert(window.Telegram?.WebApp?.initDataUnsafe?.user?.id);
   const [walletAddress, setWalletAddress] = useState<string | undefined>();
   const [referralCount, setReferralCount] = useState(0);
 
