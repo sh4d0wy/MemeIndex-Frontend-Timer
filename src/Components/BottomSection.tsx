@@ -134,6 +134,7 @@ const BottomSection = () => {
         const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
         if (startParam) {
           // Apply the referral code
+          alert("start param " + startParam);
           await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
             address,
             referralCode: startParam
