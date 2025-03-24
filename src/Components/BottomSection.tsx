@@ -207,7 +207,7 @@ const BottomSection = () => {
         `Hidden door to the MemeIndex Treasury found... Let's open it together!`;
 
       
-      const inviteUrl = response.data.referralLink;
+      const inviteUrl = `https://t.me/MemeBattleArenaBot/app?startapp=${response.data.referralCode}`;
       window.Telegram?.WebApp?.openLink(`https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(messageText)}`)
       // Fallback to inline query method
       // function fallbackToInlineQuery() {
