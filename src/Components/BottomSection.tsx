@@ -59,7 +59,7 @@ declare global {
             language?: string;
           }>;
         }) => void;
-        showShareMessageDialog: (params: {
+        showShareTgDialog: (params: {
           message: string;
           button_text?: string;
           request_id?: number;
@@ -214,7 +214,7 @@ const BottomSection = () => {
       
       const inviteUrl = `https://t.me/MemeBattleArenaBot/app?startapp=${response.data.referralCode}`;
       // window.Telegram?.WebApp?.openLink(`https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(messageText)}`)
-      window.Telegram?.WebApp?.showShareMessageDialog({
+      window.Telegram?.WebApp?.showShareTgDialog({
         message: messageText + '\n\n' + inviteUrl,
         button_text: 'Invite Friends',
         request_id: 123
