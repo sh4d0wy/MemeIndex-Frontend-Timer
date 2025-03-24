@@ -33,79 +33,59 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
     const [username, setUsername] = useState('');
     const [isRegistered, setIsRegistered] = useState(false);
 
-    // First, let's handle Telegram username initialization
+    // Check registration status
+    const checkRegistration = useCallback(async (address: string) => {
+        try {
+            const res = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${address}`);
+            if (res.data?.isRegistered) {
+                setIsRegistered(true);
+                onAddressChange?.(address);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    }, [onAddressChange]);
+
+    // Handle Telegram user info
     useEffect(() => {
         const tg = window.Telegram?.WebApp;
-        const telegramUsername = tg?.initDataUnsafe?.user?.username;
         const telegramId = tg?.initDataUnsafe?.user?.id;
+        const telegramUsername = tg?.initDataUnsafe?.user?.username || 
+            tg?.initDataUnsafe?.user?.first_name ||
+            `User_${telegramId}`;
         
-        if (!telegramUsername || !telegramId) {
-            window.Telegram?.WebApp?.showAlert("Please open this app in Telegram");
-            return;
+        if (telegramId && telegramUsername) {
+            setUsername(telegramUsername);
         }
-        
-        // Use Telegram username directly
-        setUsername(telegramUsername);
     }, []);
-
-    // Check if user is already registered
-    useEffect(() => {
-        const checkRegistration = async () => {
-            try {
-                const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-                if (!telegramId) return;
-
-                // Check registration status from backend
-                const address = await tonConnectUI.current?.account?.address;
-                const res = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${address}`);
-                
-                if (res.data?.isRegistered) {
-                    setIsRegistered(true);
-                    // If user is registered and wallet is connected, update the address
-                    if (address) {
-                        onAddressChange?.(address);
-                    }
-                }
-            } catch (error) {
-                // If error occurs, assume not registered
-                console.log(error);
-                setIsRegistered(false);
-            }
-        };
-
-        checkRegistration();
-    }, [onAddressChange]);
 
     const handleConnect = useCallback(async () => {
         try {
             const address = await tonConnectUI.current?.account?.address;
-            if (!address) {
-                window.Telegram?.WebApp?.showAlert("Please connect your wallet first");
-                return;
-            }
+            if (!address) return;
 
             const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-            if (!telegramId) {
-                window.Telegram?.WebApp?.showAlert("Please open this app in Telegram");
-                return;
-            }
+            if (!telegramId || !username) return;
 
-            // Only register if not already registered
-            if (!isRegistered) {
-                const res = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
-                    address,
-                    username,
-                    telegramId,
-                    referralCode: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
-                });
-                
-                if (res.data) {
-                    setIsRegistered(true);
-                    window.Telegram?.WebApp?.showAlert("Registration successful!");
-                }
-            }
+            // Check if already registered first
+            const isAlreadyRegistered = await checkRegistration(address);
+            if (isAlreadyRegistered) return;
+
+            // If not registered, register the user
+            const res = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
+                address,
+                username,
+                telegramId,
+                referralCode: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
+            });
             
-            onAddressChange?.(address);
+            if (res.data) {
+                setIsRegistered(true);
+                onAddressChange?.(address);
+            }
         } catch (error) {
             if (error instanceof AxiosError) {
                 window.Telegram?.WebApp?.showAlert(error.response?.data?.message || "Registration failed");
@@ -113,10 +93,9 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 window.Telegram?.WebApp?.showAlert("Registration failed");
             }
         }
-    }, [username, onAddressChange, isRegistered]);
+    }, [username, onAddressChange, checkRegistration]);
 
     useEffect(() => {
-        // Use existing instance or create new one
         if (!tonConnectUIInstance) {
             tonConnectUIInstance = new TonConnectUI({
                 manifestUrl: 'https://raw.githubusercontent.com/sh4d0wy/MemeIndex-Frontend-Timer/refs/heads/main/public/tonconnect-manifest.json'
@@ -124,51 +103,40 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         }
         tonConnectUI.current = tonConnectUIInstance;
 
-        // Check initial connection status
         const checkConnection = async () => {
             const isConnected = await tonConnectUI.current?.connected;
             if (isConnected) {
                 setIsConnected(true);
-                console.log("Wallet Connected!");
-                console.log("Connected:", await tonConnectUI.current?.connected);
-                console.log("Wallet:", await tonConnectUI.current?.wallet);
-                console.log("Account:", await tonConnectUI.current?.account);
                 const address = await tonConnectUI.current?.account?.address;
-                onAddressChange?.(address);
-                // Wait a bit to ensure username is set
-                setTimeout(handleConnect, 1000);
+                if (address) {
+                    // Check registration status when wallet is already connected
+                    await checkRegistration(address);
+                }
             }
         };
         checkConnection();
 
-        // Set up connection status listener
         const unsubscribe = tonConnectUI.current.onStatusChange(async (wallet) => {
             if (wallet) {
                 setIsConnected(true);
                 const address = await tonConnectUI.current?.account?.address;
                 if (address) {
-                    onAddressChange?.(address);
-                    // Call handleConnect directly when wallet is connected
-                    await handleConnect();
+                    const isAlreadyRegistered = await checkRegistration(address);
+                    if (!isAlreadyRegistered) {
+                        await handleConnect();
+                    }
                 }
             } else {
-                console.log("Wallet Disconnected!");
                 setIsConnected(false);
+                setIsRegistered(false);
                 onAddressChange?.(undefined);
             }
         });
 
-        // Cleanup function to disconnect when component unmounts
         return () => {
             unsubscribe();
-            if (tonConnectUI.current) {
-                if (tonConnectUI.current.connected) {
-                    tonConnectUI.current.disconnect();
-                }
-                tonConnectUI.current = null;
-            }
         };
-    }, [handleConnect, onAddressChange]);
+    }, [handleConnect, onAddressChange, checkRegistration]);
 
     const openModal = async () => {
         if (tonConnectUI.current) {
