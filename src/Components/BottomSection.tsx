@@ -187,33 +187,43 @@ const BottomSection = () => {
         throw new Error('No referral code received');
       }
 
-      // Instead of using popup, let's use simpler showConfirm
+      // Create the message text
+      const messageText = 
+        `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
+        `Let's open it together!\n\n` +
+        `💰 Join now and receive:\n` +
+        `• 2 FREE votes for joining\n` +
+        `• Access to exclusive meme token listings\n` +
+        `• Early voting privileges\n\n` +
+        `Click here to join: ${response.data.referralLink}`;
+      
+      // Show options to the user
       if (window.Telegram?.WebApp) {
-        const messageText = 
-          `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
-          `Let's open it together!\n\n` +
-          `💰 Join now and receive:\n` +
-          `• 2 FREE votes for joining\n` +
-          `• Access to exclusive meme token listings\n` +
-          `• Early voting privileges\n\n` +
-          `Click here to join: ${response.data.referralLink}`;
-        
-        window.Telegram.WebApp.showConfirm("Share this invitation to friends?", (confirmed) => {
-          if (confirmed) {
-            try {
-              // Copy to clipboard and show alert
+        window.Telegram.WebApp.showConfirm(
+          "How would you like to share your invitation?", 
+          (confirmed) => {
+            if (confirmed) {
+              // Share via Telegram's interface (will close the app)
+              try {
+                window.Telegram?.WebApp?.switchInlineQuery(
+                  response.data.referralCode,
+                  ['users', 'groups', 'channels']
+                );
+              } catch {
+                window.Telegram?.WebApp?.showAlert('Failed to open sharing. Please try using clipboard instead.');
+              }
+            } else {
+              // Copy to clipboard (stays in the app)
               navigator.clipboard.writeText(messageText)
                 .then(() => {
-                  window.Telegram?.WebApp?.showAlert("Copied to clipboard! Now you can share it with friends.");
+                  window.Telegram?.WebApp?.showAlert("Copied to clipboard! You can now paste and send it to your friends.");
                 })
                 .catch(() => {
                   window.Telegram?.WebApp?.showAlert("Failed to copy to clipboard. Please try again.");
                 });
-            } catch {
-              window.Telegram?.WebApp?.showAlert("Failed to share. Please try again.");
             }
           }
-        });
+        );
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
