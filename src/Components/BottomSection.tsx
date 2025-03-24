@@ -44,6 +44,21 @@ declare global {
         setHeaderColor: (color: string) => void;
         setBackgroundColor: (color: string) => void;
         switchInlineQuery: (query: string, target_chat_types?: Array<'users' | 'groups' | 'channels'>) => void;
+        shareMessage: (params: {
+          text?: string;
+          button?: {
+            text: string;
+            url: string;
+          };
+          entities?: Array<{
+            type: string;
+            offset: number;
+            length: number;
+            url?: string;
+            user?: object;
+            language?: string;
+          }>;
+        }) => void;
         MainButton: {
           text: string;
           color: string;
@@ -187,19 +202,41 @@ const BottomSection = () => {
         throw new Error('No referral code received');
       }
 
-      // Create the message text
-      const messageText = 
-        `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
-        `Let's open it together!\n\n` +
-        `💰 Join now and receive:\n` +
-        `• 2 FREE votes for joining\n` +
-        `• Access to exclusive meme token listings\n` +
-        `• Early voting privileges\n\n` +
-        `Click here to join: ${response.data.referralLink}`;
+      // Use the shareMessage method if the app version supports it
+      if (window.Telegram?.WebApp?.isVersionAtLeast('6.4')) {
+        try {
+          // Create message data for sharing
+          const messageData = {
+            button: {
+              text: 'Unlock the Treasury',
+              url: response.data.referralLink
+            },
+            text: 'Hidden door to the MemeIndex Treasury found... Let\'s open it together!'
+          };
+
+          // Share the message without closing the app
+          window.Telegram?.WebApp?.shareMessage(messageData);
+        } catch {
+          // Fallback to confirmation dialog
+          fallbackShare();
+        }
+      } else {
+        // Fallback for older versions
+        fallbackShare();
+      }
       
-      // Show options to the user
-      if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.showConfirm(
+      function fallbackShare() {
+        // Create the message text
+        const messageText = 
+          `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
+          `Let's open it together!\n\n` +
+          `💰 Join now and receive:\n` +
+          `• 2 FREE votes for joining\n` +
+          `• Access to exclusive meme token listings\n` +
+          `• Early voting privileges\n\n` +
+          `Click here to join: ${response.data.referralLink}`;
+        
+        window.Telegram?.WebApp?.showConfirm(
           "How would you like to share your invitation?", 
           (confirmed) => {
             if (confirmed) {
