@@ -2,7 +2,7 @@ import ConnectButton from './ConnectButton'
 import { FaTelegram } from 'react-icons/fa'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-
+import { postEvent } from '@telegram-apps/sdk'
 declare global {
   interface Window {
     Telegram?: {
@@ -118,6 +118,9 @@ declare global {
 }
 
 const BottomSection = () => {
+  postEvent("web_app_set_header_color", {
+    color: "#006FFF"
+  })
   const [walletAddress, setWalletAddress] = useState<string | undefined>();
   const [referralCount, setReferralCount] = useState(0);
 
