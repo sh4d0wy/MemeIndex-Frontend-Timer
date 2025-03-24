@@ -31,6 +31,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
     const tonConnectUI = useRef<TonConnectUI | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
+    const [isRegistered, setIsRegistered] = useState(false);
 
     // First, let's handle Telegram username initialization
     useEffect(() => {
@@ -47,6 +48,34 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         setUsername(telegramUsername);
     }, []);
 
+    // Check if user is already registered
+    useEffect(() => {
+        const checkRegistration = async () => {
+            try {
+                const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+                if (!telegramId) return;
+
+                // Check registration status from backend
+                const address = await tonConnectUI.current?.account?.address;
+                const res = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${address}`);
+                
+                if (res.data?.isRegistered) {
+                    setIsRegistered(true);
+                    // If user is registered and wallet is connected, update the address
+                    if (address) {
+                        onAddressChange?.(address);
+                    }
+                }
+            } catch (error) {
+                // If error occurs, assume not registered
+                console.log(error);
+                setIsRegistered(false);
+            }
+        };
+
+        checkRegistration();
+    }, [onAddressChange]);
+
     const handleConnect = useCallback(async () => {
         try {
             const address = await tonConnectUI.current?.account?.address;
@@ -56,23 +85,27 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             }
 
             const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-            if (!telegramId || !username) {
+            if (!telegramId) {
                 window.Telegram?.WebApp?.showAlert("Please open this app in Telegram");
                 return;
             }
 
-            // Make registration request with Telegram info
-            const res = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
-                address,
-                username,
-                telegramId,
-                referralCode: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
-            });
-            
-            if (res.data) {
-                window.Telegram?.WebApp?.showAlert("Registration successful!");
-                onAddressChange?.(address);
+            // Only register if not already registered
+            if (!isRegistered) {
+                const res = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
+                    address,
+                    username,
+                    telegramId,
+                    referralCode: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
+                });
+                
+                if (res.data) {
+                    setIsRegistered(true);
+                    window.Telegram?.WebApp?.showAlert("Registration successful!");
+                }
             }
+            
+            onAddressChange?.(address);
         } catch (error) {
             if (error instanceof AxiosError) {
                 window.Telegram?.WebApp?.showAlert(error.response?.data?.message || "Registration failed");
@@ -80,7 +113,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 window.Telegram?.WebApp?.showAlert("Registration failed");
             }
         }
-    }, [username, onAddressChange]);
+    }, [username, onAddressChange, isRegistered]);
 
     useEffect(() => {
         // Use existing instance or create new one
