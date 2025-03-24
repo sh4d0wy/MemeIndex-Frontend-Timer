@@ -36,29 +36,31 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         try {
             const address = await tonConnectUI.current?.account?.address;
             if (!address) {
-                console.error("No wallet address found");
+                window.Telegram?.WebApp?.showAlert("No wallet address found");
                 return;
             }
 
             if (!username) {
-                console.error("No username available");
+                window.Telegram?.WebApp?.showAlert("No username available");
                 return;
             }
 
-            console.log("Registering user with:", { address, username });
+            // Make registration request
             const res = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
                 address: address,
                 username: username,
-                referralCode: ""
+                referralCode: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
             });
             
-            console.log("Registration response:", res.data);
-            onAddressChange?.(address);
+            if (res.data) {
+                window.Telegram?.WebApp?.showAlert("Registration successful!");
+                onAddressChange?.(address);
+            }
         } catch (error) {
             if (error instanceof AxiosError) {
-                console.error("Registration error:", error.response?.data || error.message);
+                window.Telegram?.WebApp?.showAlert(error.response?.data?.message || "Registration failed");
             } else {
-                console.error("Unknown error:", error);
+                window.Telegram?.WebApp?.showAlert("Registration failed");
             }
         }
     }, [username, onAddressChange]);
@@ -109,15 +111,13 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         // Set up connection status listener
         const unsubscribe = tonConnectUI.current.onStatusChange(async (wallet) => {
             if (wallet) {
-                console.log("Wallet Connected!");
-                console.log("Connected:", await tonConnectUI.current?.connected);
-                console.log("Wallet:", await tonConnectUI.current?.wallet);
-                console.log("Account:", await tonConnectUI.current?.account);
                 setIsConnected(true);
                 const address = await tonConnectUI.current?.account?.address;
-                onAddressChange?.(address);
-                // Wait a bit to ensure username is set
-                setTimeout(handleConnect, 1000);
+                if (address) {
+                    onAddressChange?.(address);
+                    // Call handleConnect directly when wallet is connected
+                    await handleConnect();
+                }
             } else {
                 console.log("Wallet Disconnected!");
                 setIsConnected(false);
