@@ -187,32 +187,30 @@ const BottomSection = () => {
         throw new Error('No referral code received');
       }
 
-      // Create the message text
-      const messageText = 
-        `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
-        `Let's open it together!\n\n` +
-        `💰 Join now and receive:\n` +
-        `• 2 FREE votes for joining\n` +
-        `• Access to exclusive meme token listings\n` +
-        `• Early voting privileges\n\n` +
-        `Click here to join: ${response.data.referralLink}`;
-
-      // Show preview and send message
+      // Instead of using popup, let's use simpler showConfirm
       if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.showPopup({
-          title: 'Share Invitation',
-          message: messageText,
-          buttons: [
-            { type: 'default', text: 'Share' },
-            { type: 'cancel', text: 'Cancel' }
-          ]
-        }, async (buttonId) => {
-          if (buttonId === 'Share') {
+        const messageText = 
+          `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
+          `Let's open it together!\n\n` +
+          `💰 Join now and receive:\n` +
+          `• 2 FREE votes for joining\n` +
+          `• Access to exclusive meme token listings\n` +
+          `• Early voting privileges\n\n` +
+          `Click here to join: ${response.data.referralLink}`;
+        
+        window.Telegram.WebApp.showConfirm("Share this invitation to friends?", (confirmed) => {
+          if (confirmed) {
             try {
-              await window.Telegram?.WebApp?.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(response.data.referralLink)}&text=${encodeURIComponent(messageText)}`);
-            } catch (error) {
-              console.log(error);
-              window.Telegram?.WebApp?.showAlert('Failed to share. Please try again.');
+              // Copy to clipboard and show alert
+              navigator.clipboard.writeText(messageText)
+                .then(() => {
+                  window.Telegram?.WebApp?.showAlert("Copied to clipboard! Now you can share it with friends.");
+                })
+                .catch(() => {
+                  window.Telegram?.WebApp?.showAlert("Failed to copy to clipboard. Please try again.");
+                });
+            } catch {
+              window.Telegram?.WebApp?.showAlert("Failed to share. Please try again.");
             }
           }
         });
