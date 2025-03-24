@@ -187,34 +187,35 @@ const BottomSection = () => {
         throw new Error('No referral code received');
       }
 
-      // Use switchInlineQuery to share the message
-      if (window.Telegram?.WebApp) {
-        try {
-          // First check if inline mode is supported
-          if (!window.Telegram.WebApp.isVersionAtLeast('6.0')) {
-            throw new Error('Inline mode not supported');
-          }
+      // Create the message text
+      const messageText = 
+        `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
+        `Let's open it together!\n\n` +
+        `💰 Join now and receive:\n` +
+        `• 2 FREE votes for joining\n` +
+        `• Access to exclusive meme token listings\n` +
+        `• Early voting privileges\n\n` +
+        `Click here to join: ${response.data.referralLink}`;
 
-          // Create the inline query text with just the referral code
-          window.Telegram.WebApp.switchInlineQuery(
-            response.data.referralCode,
-            ['users', 'groups', 'channels']
-          );
-        } catch (error) {
-          // Fallback to regular sharing if inline query fails
-          console.error('Inline query error:', error);
-          const messageText = 
-            `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
-            `Let's open it together!\n\n` +
-            `💰 Join now and receive:\n` +
-            `• 2 FREE votes for joining\n` +
-            `• Access to exclusive meme token listings\n` +
-            `• Early voting privileges\n\n` +
-            `Click here to join: ${response.data.referralLink}`;
-          
-          await navigator.clipboard.writeText(messageText);
-          window.Telegram?.WebApp?.showAlert('Share link copied to clipboard!');
-        }
+      // Show preview and send message
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.showPopup({
+          title: 'Share Invitation',
+          message: messageText,
+          buttons: [
+            { id: 'share', type: 'default', text: 'Share' },
+            { id: 'cancel', type: 'cancel', text: 'Cancel' }
+          ]
+        }, async (buttonId) => {
+          if (buttonId === 'share') {
+            try {
+              await window.Telegram?.WebApp?.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(response.data.referralLink)}&text=${encodeURIComponent(messageText)}`);
+            } catch (error) {
+              console.log(error);
+              window.Telegram?.WebApp?.showAlert('Failed to share. Please try again.');
+            }
+          }
+        });
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
