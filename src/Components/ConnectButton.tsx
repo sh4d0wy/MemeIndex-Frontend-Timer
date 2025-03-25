@@ -6,14 +6,30 @@ import axios, { AxiosError } from 'axios';
 let tonConnectUIInstance: TonConnectUI | null = null;
 
 interface ConnectButtonProps {
-    onAddressChange?: (address: string | undefined) => void;
+    onAddressChange?: (address: string | undefined, options?: { messageId?: string }) => void;
+    pendingMessageId?: string | null;
 }
 
-const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
+const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps) => {
     const tonConnectUI = useRef<TonConnectUI | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
     const [isRegistered, setIsRegistered] = useState(false);
+    const [walletAddress, setWalletAddress] = useState<string | undefined>();
+    const [formattedAddress, setFormattedAddress] = useState<string>('');
+
+    // Format wallet address for display
+    const formatAddress = (address: string) => {
+        if (!address || address.length < 10) return address;
+        return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+    };
+
+    // Store pendingMessageId when it changes
+    useEffect(() => {
+        if (pendingMessageId) {
+            // Handle pending message ID
+        }
+    }, [pendingMessageId]);
 
     // Check registration status
     const checkRegistration = useCallback(async (address: string) => {
@@ -48,6 +64,9 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         try {
             const address = await tonConnectUI.current?.account?.address;
             if (!address) return;
+
+            setWalletAddress(address);
+            setFormattedAddress(formatAddress(address));
 
             const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
             if (!telegramId || !username) return;
@@ -95,8 +114,8 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 const response = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
                     address,
                     username,
-                    prePreparedMessageId:res.data.result.id,
-                    referralCode:telegramId,
+                    prePreparedMessageId: res.data.result.id,
+                    referralCode: telegramId,
                     referredBy: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
                 });
                 if (response.data) {
@@ -118,7 +137,24 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 window.Telegram?.WebApp?.showAlert("Registration failed");
             }
         }
-    }, [username, onAddressChange, checkRegistration]);
+    }, [username, onAddressChange, checkRegistration, formatAddress]);
+
+    const handleDisconnect = useCallback(async () => {
+        try {
+            if (tonConnectUI.current) {
+                await tonConnectUI.current.disconnect();
+                setIsConnected(false);
+                setIsRegistered(false);
+                setWalletAddress(undefined);
+                setFormattedAddress('');
+                onAddressChange?.(undefined);
+                window.Telegram?.WebApp?.showAlert('Wallet disconnected successfully');
+            }
+        } catch (error) {
+            console.error('Error disconnecting wallet:', error);
+            window.Telegram?.WebApp?.showAlert('Failed to disconnect wallet');
+        }
+    }, [onAddressChange]);
 
     useEffect(() => {
         if (!tonConnectUIInstance) {
@@ -134,6 +170,8 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 setIsConnected(true);
                 const address = await tonConnectUI.current?.account?.address;
                 if (address) {
+                    setWalletAddress(address);
+                    setFormattedAddress(formatAddress(address));
                     // Check registration status when wallet is already connected
                     await checkRegistration(address);
                 }
@@ -146,6 +184,8 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 setIsConnected(true);
                 const address = await tonConnectUI.current?.account?.address;
                 if (address) {
+                    setWalletAddress(address);
+                    setFormattedAddress(formatAddress(address));
                     const isAlreadyRegistered = await checkRegistration(address);
                     if (!isAlreadyRegistered) {
                         await handleConnect();
@@ -154,6 +194,8 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             } else {
                 setIsConnected(false);
                 setIsRegistered(false);
+                setWalletAddress(undefined);
+                setFormattedAddress('');
                 onAddressChange?.(undefined);
             }
         });
@@ -161,7 +203,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         return () => {
             unsubscribe();
         };
-    }, [handleConnect, onAddressChange, checkRegistration]);
+    }, [handleConnect, onAddressChange, checkRegistration, formatAddress]);
 
     const openModal = async () => {
         if (tonConnectUI.current) {
@@ -178,6 +220,21 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 >
                     {isRegistered ? 'Reconnect Wallet' : 'Connect Wallet'}
                 </button>
+            )}
+            
+            {isConnected && walletAddress && (
+                <div className='w-full flex gap-2'>
+                    <div className='flex-1 bg-[#2C2C2C] text-white py-4 px-6 rounded-xl text-lg font-medium flex items-center justify-between'>
+                        <span>Connected: {formattedAddress}</span>
+                        <span className='text-green-400'>✓</span>
+                    </div>
+                    <button 
+                        onClick={handleDisconnect}
+                        className='bg-red-500 hover:bg-red-600 text-white py-4 px-6 rounded-xl text-lg font-bold transition-all duration-300'
+                    >
+                        Disconnect
+                    </button>
+                </div>
             )}
         </div>
     )
