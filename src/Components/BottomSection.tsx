@@ -160,25 +160,24 @@ const BottomSection = () => {
         const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
         if (startParam) {
           // Apply the referral code
-          alert("start param " + startParam);
+          console.log("start param " + startParam);
           await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
             address,
             referralCode: startParam
           });
           
           // Show success message
-          window.Telegram?.WebApp?.showAlert('Referral code applied successfully!');
+          console.log('Referral code applied successfully!');
         }
       } catch (error) {
         console.error('Error applying referral code:', error);
-        window.Telegram?.WebApp?.showAlert('Failed to apply referral code. Please try again.');
       }
     }
   };
 
   const handleGetReferralLink = async () => {
     if (!walletAddress) {
-      window.Telegram?.WebApp?.showAlert('Please connect your wallet first');
+      console.log('Please connect your wallet first');
       return;
     }
   
@@ -186,7 +185,7 @@ const BottomSection = () => {
       // Get user's Telegram ID
       const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
       if (!telegramId) {
-        window.Telegram?.WebApp?.showAlert('Please open this app in Telegram');
+        console.log('Please open this app in Telegram');
         return;
       }
 
@@ -214,24 +213,20 @@ const BottomSection = () => {
           throw new Error('No referral code received');
         }
         if(response.data && response.data.prePreparedMessageId) {
-          window.Telegram?.WebApp?.showAlert('Referral link prepared successfully!');
+          console.log('Referral link prepared successfully!');
           postEvent("web_app_send_prepared_message", { id: response.data.prePreparedMessageId });
         } else {
-          window.Telegram?.WebApp?.showAlert('Failed to prepare message. Please try again.');
+          console.log('Failed to prepare message. Please try again.');
         }
-        // Generate a stable unique ID using telegramId and timestamp
-       
-
-        
       } catch (error: unknown) {
         console.error('Backend API Error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        window.Telegram?.WebApp?.showAlert(`Error fetching referral data: ${errorMessage}`);
+        console.log(`Error fetching referral data: ${errorMessage}`);
       }
     } catch (error: unknown) {
       console.error('General Error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      window.Telegram?.WebApp?.showAlert(`Error: ${errorMessage}`);
+      console.log(`Error: ${errorMessage}`);
     } finally {
       // Always restore button state
       const button = document.querySelector('button:first-child');
@@ -243,7 +238,7 @@ const BottomSection = () => {
 
   const handleShareButton = async () => {
     if (!walletAddress) {
-      alert('Please connect your wallet first');
+      console.log('Please connect your wallet first');
       return;
     }
   
@@ -265,7 +260,7 @@ const BottomSection = () => {
       
       if (window.Telegram?.WebApp) {
         await navigator.clipboard.writeText(messageText);
-        alert('Share link copied to clipboard!');
+        console.log('Share link copied to clipboard!');
       }
     } catch (error) {
       console.error('Error sharing:', error);

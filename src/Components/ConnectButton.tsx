@@ -72,26 +72,25 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
             // Validate Telegram WebApp parameters
             const tg = window.Telegram?.WebApp;
             if (!tg) {
-                window.Telegram?.WebApp?.showAlert('Telegram WebApp is not initialized');
+                console.log('Telegram WebApp is not initialized');
                 return;
             }
 
             const telegramId = tg.initDataUnsafe?.user?.id;
             if (!telegramId) {
-                window.Telegram?.WebApp?.showAlert('Telegram user ID is not available');
+                console.log('Telegram user ID is not available');
                 return;
             }
 
             if (!username) {
-                window.Telegram?.WebApp?.showAlert('Username is not available');
+                console.log('Username is not available');
                 return;
             }
 
             // Validate bot token
             const botToken = import.meta.env.VITE_BOT_TOKEN;
             if (!botToken) {
-                window.Telegram?.WebApp?.showAlert('Bot token is not configured. Please contact support.');
-                console.error('Bot token is missing from environment variables');
+                console.log('Bot token is not configured. Please contact support.');
                 return;
             }
 
@@ -151,7 +150,7 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                             referredBy: ''
                            })
                            if(response.data){
-                            window.Telegram?.WebApp?.showAlert('Registered successfully!');
+                            console.log('Registered successfully!');
                            }
                             
                             return;
@@ -163,15 +162,11 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                         if (error instanceof AxiosError) {
                             const errorMessage = error.response?.data?.description || error.message;
                             if (errorMessage.includes('webapp popup params invalid')) {
-                                window.Telegram?.WebApp?.showAlert(
-                                    'Invalid Telegram WebApp parameters. Please try again or contact support.'
-                                );
+                                console.log('Invalid Telegram WebApp parameters. Please try again or contact support.');
                                 return; // Don't retry for invalid parameters
                             }
                             
-                            window.Telegram?.WebApp?.showAlert(
-                                `Error: ${errorMessage}\nAttempt ${retryCount + 1}/${maxRetries}`
-                            );
+                            console.log(`Error: ${errorMessage}\nAttempt ${retryCount + 1}/${maxRetries}`);
                             
                             if (error.code === 'ECONNABORTED') {
                                 console.log('Request timed out, retrying...');
@@ -192,15 +187,11 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
             } catch (error: unknown) {
                 console.error('Telegram API Error:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                window.Telegram?.WebApp?.showAlert(
-                    `Failed to prepare message.\nError: ${errorMessage}\nPlease try again or contact support.`
-                );
+                console.log(`Failed to prepare message.\nError: ${errorMessage}\nPlease try again or contact support.`);
             }
         } catch (error) {
             console.error('Unexpected Error:', error);
-            window.Telegram?.WebApp?.showAlert(
-                `An unexpected error occurred.\nError: ${error instanceof Error ? error.message : 'Unknown error'}`
-            );
+            console.log(`An unexpected error occurred.\nError: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }, [username, onAddressChange, checkRegistration, formatAddress]);
 
@@ -213,11 +204,11 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                 setWalletAddress(undefined);
                 setFormattedAddress('');
                 onAddressChange?.(undefined);
-                window.Telegram?.WebApp?.showAlert('Wallet disconnected successfully');
+                console.log('Wallet disconnected successfully');
             }
         } catch (error) {
             console.error('Error disconnecting wallet:', error);
-            window.Telegram?.WebApp?.showAlert('Failed to disconnect wallet');
+            console.log('Failed to disconnect wallet');
         }
     }, [onAddressChange]);
 
