@@ -102,11 +102,11 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                 while (retryCount < maxRetries) {
                     try {
                         // Log the request parameters for debugging
-                        console.log('Request parameters:', {
+                        window.Telegram?.WebApp?.showAlert('Request parameters:' + JSON.stringify({
                             user_id: telegramId,
                             uniqueId,
                             botToken: import.meta.env.VITE_BOT_TOKEN ? 'Present' : 'Missing'
-                        });
+                        }));
 
                         const res = await axios.post(
                             `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
