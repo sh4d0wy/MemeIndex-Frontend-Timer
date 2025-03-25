@@ -99,9 +99,7 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                 let retryCount = 0;
                 let lastError = null;
                 window.Telegram?.WebApp?.showAlert('Request parameters:' + JSON.stringify({
-                    user_id: telegramId,
-                    uniqueId,
-                    botToken: import.meta.env.VITE_BOT_TOKEN ? 'Present' : 'Missing'
+                    botToken: import.meta.env.VITE_BOT_TOKEN 
                 }));
                 while (retryCount < maxRetries) {
                     try {
