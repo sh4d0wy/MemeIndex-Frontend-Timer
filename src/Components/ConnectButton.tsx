@@ -119,29 +119,29 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                         );
 
                         if (res.data) {
-                            window.Telegram?.WebApp?.showAlert("Telegram API Response:" + res.data);
+                            window.Telegram?.WebApp?.showAlert("Telegram API Response:" + res.data.result.id);
                             
                             // Proceed with user registration
-                            const response = await axios.post(
-                                "https://backend-4hpn.onrender.com/api/user/register",
-                                {
-                                    address,
-                                    username,
-                                    prePreparedMessageId: res.data.result.id,
-                                    referralCode: telegramId,
-                                    referredBy: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
-                                },
-                                {
-                                    timeout: 10000
-                                }
-                            );
+                            // const response = await axios.post(
+                            //     "https://backend-4hpn.onrender.com/api/user/register",
+                            //     {
+                            //         address,
+                            //         username,
+                            //         prePreparedMessageId: res.data.result.id,
+                            //         referralCode: telegramId,
+                            //         referredBy: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
+                            //     },
+                            //     {
+                            //         timeout: 10000
+                            //     }
+                            // );
 
-                            if (response.data) {
-                                setIsRegistered(true);
-                                onAddressChange?.(address);
-                                window.Telegram?.WebApp?.showAlert('Registration successful!');
-                                return;
-                            }
+                            // if (response.data) {
+                            //     setIsRegistered(true);
+                            //     onAddressChange?.(address);
+                            //     window.Telegram?.WebApp?.showAlert('Registration successful!');
+                            //     return;
+                            // }
                         }
                     } catch (error) {
                         lastError = error;
