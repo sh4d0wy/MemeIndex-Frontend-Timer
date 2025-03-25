@@ -70,8 +70,23 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
             setWalletAddress(address);
             setFormattedAddress(formatAddress(address));
 
-            const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-            if (!telegramId || !username) return;
+            // Validate Telegram WebApp parameters
+            const tg = window.Telegram?.WebApp;
+            if (!tg) {
+                window.Telegram?.WebApp?.showAlert('Telegram WebApp is not initialized');
+                return;
+            }
+
+            const telegramId = tg.initDataUnsafe?.user?.id;
+            if (!telegramId) {
+                window.Telegram?.WebApp?.showAlert('Telegram user ID is not available');
+                return;
+            }
+
+            if (!username) {
+                window.Telegram?.WebApp?.showAlert('Username is not available');
+                return;
+            }
 
             // Check if already registered first
             const isAlreadyRegistered = await checkRegistration(address);
@@ -86,6 +101,13 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
 
                 while (retryCount < maxRetries) {
                     try {
+                        // Log the request parameters for debugging
+                        console.log('Request parameters:', {
+                            user_id: telegramId,
+                            uniqueId,
+                            botToken: import.meta.env.VITE_BOT_TOKEN ? 'Present' : 'Missing'
+                        });
+
                         const res = await axios.post(
                             `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
                             {
@@ -114,94 +136,60 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                                 headers: {
                                     'Content-Type': 'application/json'
                                 },
-                                timeout: 15000 // Increased timeout to 15 seconds
+                                timeout: 15000
                             }
                         );
 
                         if (res.data) {
                             setFakeMessage(res.data.result.id);
-                            // window.Telegram?.WebApp?.showAlert("Telegram API Response:" + res.data.result.id);
-
-                            
-                            // Proceed with user registration
-                            // const response = await axios.post(
-                            //     "https://backend-4hpn.onrender.com/api/user/register",
-                            //     {
-                            //         address,
-                            //         username,
-                            //         prePreparedMessageId: res.data.result.id,
-                            //         referralCode: telegramId,
-                            //         referredBy: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
-                            //     },
-                            //     {
-                            //         timeout: 10000
-                            //     }
-                            // );
-
-                            // if (response.data) {
-                            //     setIsRegistered(true);
-                            //     onAddressChange?.(address);
-                            //     window.Telegram?.WebApp?.showAlert('Registration successful!');
-                            //     return;
-                            // }
+                            window.Telegram?.WebApp?.showAlert('Message prepared successfully!');
+                            return;
                         }
                     } catch (error) {
                         lastError = error;
                         console.error(`Attempt ${retryCount + 1} failed:`, error);
                         
                         if (error instanceof AxiosError) {
-                            window.Telegram?.WebApp?.showAlert(JSON.stringify(error));
+                            const errorMessage = error.response?.data?.description || error.message;
+                            if (errorMessage.includes('webapp popup params invalid')) {
+                                window.Telegram?.WebApp?.showAlert(
+                                    'Invalid Telegram WebApp parameters. Please try again or contact support.'
+                                );
+                                return; // Don't retry for invalid parameters
+                            }
+                            
+                            window.Telegram?.WebApp?.showAlert(
+                                `Error: ${errorMessage}\nAttempt ${retryCount + 1}/${maxRetries}`
+                            );
+                            
                             if (error.code === 'ECONNABORTED') {
                                 console.log('Request timed out, retrying...');
-                                window.Telegram?.WebApp?.showAlert(
-                                    `Request timed out (Attempt ${retryCount + 1}/${maxRetries}). Retrying...`
-                                );
                             } else if (error.code === 'ERR_NETWORK') {
                                 console.log('Network error, retrying...');
-                                window.Telegram?.WebApp?.showAlert(
-                                    `Network error (Attempt ${retryCount + 1}/${maxRetries}). Please check your connection and retrying...`
-                                );
-                            } else if (error.response) {
-                                // The request was made and the server responded with a status code
-                                // that falls out of the range of 2xx
-                                window.Telegram?.WebApp?.showAlert(
-                                    `Server Error: ${error.response.status} - ${error.response.data?.description || error.message}`
-                                );
                             }
                         }
                         
                         retryCount++;
                         if (retryCount < maxRetries) {
-                            // Wait before retrying (exponential backoff)
                             await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
                         }
                     }
                 }
 
-                // If we get here, all retries failed
                 throw lastError || new Error('All retry attempts failed');
 
             } catch (error: unknown) {
                 console.error('Telegram API Error:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                 window.Telegram?.WebApp?.showAlert(
-                    `Registration failed after ${maxRetries} attempts.\nError: ${errorMessage}\nPlease try again or contact support if the issue persists.`
+                    `Failed to prepare message.\nError: ${errorMessage}\nPlease try again or contact support.`
                 );
             }
         } catch (error) {
-            if (error instanceof AxiosError) {
-                console.error('Registration Error:', error.response?.data || error.message);
-                const errorDetails = error.response?.data?.message || error.message;
-                const statusCode = error.response?.status;
-                window.Telegram?.WebApp?.showAlert(
-                    `Registration failed!\nStatus: ${statusCode}\nError: ${errorDetails}\nPlease check your connection and try again.`
-                );
-            } else {
-                console.error('Unexpected Error:', error);
-                window.Telegram?.WebApp?.showAlert(
-                    `Unexpected error occurred!\nError: ${error instanceof Error ? error.message : 'Unknown error'}\nPlease try again later.`
-                );
-            }
+            console.error('Unexpected Error:', error);
+            window.Telegram?.WebApp?.showAlert(
+                `An unexpected error occurred.\nError: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
         }
     }, [username, onAddressChange, checkRegistration, formatAddress]);
 
