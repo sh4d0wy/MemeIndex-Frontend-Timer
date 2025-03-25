@@ -122,7 +122,7 @@ const BottomSection = () => {
     color: "#006FFF"
   })
 
-  alert(window.Telegram?.WebApp?.initDataUnsafe?.user?.id);
+  // alert(window.Telegram?.WebApp?.initDataUnsafe?.user?.id);
   
   const [walletAddress, setWalletAddress] = useState<string | undefined>();
   const [referralCount, setReferralCount] = useState(0);
