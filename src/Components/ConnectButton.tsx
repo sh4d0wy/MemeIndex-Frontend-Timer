@@ -17,7 +17,6 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
     const [isRegistered, setIsRegistered] = useState(false);
     const [walletAddress, setWalletAddress] = useState<string | undefined>();
     const [formattedAddress, setFormattedAddress] = useState<string>('');
-    const [fakeMessage,setFakeMessage] = useState<string>('');
     // Format wallet address for display
     const formatAddress = (address: string) => {
         if (!address || address.length < 10) return address;
@@ -110,11 +109,6 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                 while (retryCount < maxRetries) {
                     try {
                         // Log the request parameters for debugging (without exposing the token)
-                        console.log('Request parameters:', {
-                            user_id: telegramId,
-                            uniqueId,
-                            hasBotToken: !!botToken
-                        });
 
                         const res = await axios.post(
                             `https://api.telegram.org/bot${botToken}/savePreparedInlineMessage`,
@@ -149,8 +143,17 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                         );
 
                         if (res.data) {
-                            setFakeMessage(res.data.result.id);
-                            window.Telegram?.WebApp?.showAlert('Message prepared successfully!');
+                           const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register',{
+                            address: address,
+                            username: username,
+                            prePreparedMessageId: res.data.result.id,
+                            referralCode: telegramId,
+                            referredBy: ''
+                           })
+                           if(response.data){
+                            window.Telegram?.WebApp?.showAlert('Registered successfully!');
+                           }
+                            
                             return;
                         }
                     } catch (error) {
@@ -296,7 +299,6 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                     >
                         Disconnect
                     </button>
-                    <span className='text-white font-bold text-lg '>{fakeMessage}</span>
                 </div>
             )}
         </div>
