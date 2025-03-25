@@ -17,7 +17,7 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
     const [isRegistered, setIsRegistered] = useState(false);
     const [walletAddress, setWalletAddress] = useState<string | undefined>();
     const [formattedAddress, setFormattedAddress] = useState<string>('');
-
+    const [fakeMessage,setFakeMessage] = useState<string>('');
     // Format wallet address for display
     const formatAddress = (address: string) => {
         if (!address || address.length < 10) return address;
@@ -119,7 +119,9 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                         );
 
                         if (res.data) {
-                            window.Telegram?.WebApp?.showAlert("Telegram API Response:" + res.data.result.id);
+                            setFakeMessage(res.data.result.id);
+                            // window.Telegram?.WebApp?.showAlert("Telegram API Response:" + res.data.result.id);
+
                             
                             // Proceed with user registration
                             // const response = await axios.post(
@@ -298,6 +300,7 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                     >
                         Disconnect
                     </button>
+                    <span className='text-white font-bold text-lg '>{fakeMessage}</span>
                 </div>
             )}
         </div>
