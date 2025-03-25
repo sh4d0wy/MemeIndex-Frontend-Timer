@@ -119,7 +119,7 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                         );
 
                         if (res.data) {
-                            console.log("Telegram API Response:", res.data);
+                            window.Telegram?.WebApp?.showAlert("Telegram API Response:" + res.data);
                             
                             // Proceed with user registration
                             const response = await axios.post(
