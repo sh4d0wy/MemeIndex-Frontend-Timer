@@ -148,6 +148,7 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                         console.error(`Attempt ${retryCount + 1} failed:`, error);
                         
                         if (error instanceof AxiosError) {
+                            window.Telegram?.WebApp?.showAlert(error.message);
                             if (error.code === 'ECONNABORTED') {
                                 console.log('Request timed out, retrying...');
                                 window.Telegram?.WebApp?.showAlert(
