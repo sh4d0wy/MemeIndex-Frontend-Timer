@@ -61,6 +61,8 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
     }, []);
 
     const handleConnect = useCallback(async () => {
+        const maxRetries = 3;
+
         try {
             const address = await tonConnectUI.current?.account?.address;
             if (!address) return;
@@ -77,64 +79,125 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
 
             try {
                 const uniqueId = `msg_${telegramId}_${Date.now()}`;
-                const res = await axios.post(
-                  `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
-                  {
-                    user_id: telegramId, // Required field
-                    result: {
-                      type: "article",
-                      id: uniqueId,
-                      title: "Hidden door to the MemeIndex Treasury found...",
-                      input_message_content: {
-                        message_text: "Hidden door to the MemeIndex Treasury found... Let's open it together!"
-                      },
-                      reply_markup: {
-                        inline_keyboard: [
-                          [
+                
+                // Add retry logic for Telegram API request
+                let retryCount = 0;
+                let lastError = null;
+
+                while (retryCount < maxRetries) {
+                    try {
+                        const res = await axios.post(
+                            `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
                             {
-                              text: "Join Now 🚀",
-                              url: `https://t.me/MemeBattleArenaBot/app?startapp=${telegramId}`
+                                user_id: telegramId,
+                                result: {
+                                    type: "article",
+                                    id: uniqueId,
+                                    title: "Hidden door to the MemeIndex Treasury found...",
+                                    input_message_content: {
+                                        message_text: "Hidden door to the MemeIndex Treasury found... Let's open it together!"
+                                    },
+                                    reply_markup: {
+                                        inline_keyboard: [
+                                            [
+                                                {
+                                                    text: "Join Now 🚀",
+                                                    url: `https://t.me/MemeBattleArenaBot/app?startapp=${telegramId}`
+                                                }
+                                            ]
+                                        ]
+                                    }
+                                },
+                                allow_user_chats: true
+                            },
+                            {
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                timeout: 15000 // Increased timeout to 15 seconds
                             }
-                          ]
-                        ]
-                      }
-                    },
-                    allow_user_chats: true // Optional, allows sending in private chats
-                  },
-                  {
-                    headers: {
-                      'Content-Type': 'application/json'
-                    },
-                    timeout: 10000 // 10 second timeout
-                  }
-                );
-              
-                alert("Prepared Message Response:" + res.data);
+                        );
 
-                const response = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
-                    address,
-                    username,
-                    prePreparedMessageId: res.data.result.id,
-                    referralCode: telegramId,
-                    referredBy: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
-                });
-                if (response.data) {
-                    setIsRegistered(true);
-                    onAddressChange?.(address);
+                        if (res.data) {
+                            console.log("Telegram API Response:", res.data);
+                            
+                            // Proceed with user registration
+                            const response = await axios.post(
+                                "https://backend-4hpn.onrender.com/api/user/register",
+                                {
+                                    address,
+                                    username,
+                                    prePreparedMessageId: res.data.result.id,
+                                    referralCode: telegramId,
+                                    referredBy: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
+                                },
+                                {
+                                    timeout: 10000
+                                }
+                            );
+
+                            if (response.data) {
+                                setIsRegistered(true);
+                                onAddressChange?.(address);
+                                window.Telegram?.WebApp?.showAlert('Registration successful!');
+                                return;
+                            }
+                        }
+                    } catch (error) {
+                        lastError = error;
+                        console.error(`Attempt ${retryCount + 1} failed:`, error);
+                        
+                        if (error instanceof AxiosError) {
+                            if (error.code === 'ECONNABORTED') {
+                                console.log('Request timed out, retrying...');
+                                window.Telegram?.WebApp?.showAlert(
+                                    `Request timed out (Attempt ${retryCount + 1}/${maxRetries}). Retrying...`
+                                );
+                            } else if (error.code === 'ERR_NETWORK') {
+                                console.log('Network error, retrying...');
+                                window.Telegram?.WebApp?.showAlert(
+                                    `Network error (Attempt ${retryCount + 1}/${maxRetries}). Please check your connection and retrying...`
+                                );
+                            } else if (error.response) {
+                                // The request was made and the server responded with a status code
+                                // that falls out of the range of 2xx
+                                window.Telegram?.WebApp?.showAlert(
+                                    `Server Error: ${error.response.status} - ${error.response.data?.description || error.message}`
+                                );
+                            }
+                        }
+                        
+                        retryCount++;
+                        if (retryCount < maxRetries) {
+                            // Wait before retrying (exponential backoff)
+                            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+                        }
+                    }
                 }
-                console.log("Registration Response:", response.data);
 
-              
-              } catch (error: unknown) {
+                // If we get here, all retries failed
+                throw lastError || new Error('All retry attempts failed');
+
+            } catch (error: unknown) {
                 console.error('Telegram API Error:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                window.Telegram?.WebApp?.showAlert(`Telegram API Error: ${errorMessage}`);
-              }
+                window.Telegram?.WebApp?.showAlert(
+                    `Registration failed after ${maxRetries} attempts.\nError: ${errorMessage}\nPlease try again or contact support if the issue persists.`
+                );
+            }
         } catch (error) {
             if (error instanceof AxiosError) {
-                window.Telegram?.WebApp?.showAlert(error.response?.data?.message || "Registration failed");
+                console.error('Registration Error:', error.response?.data || error.message);
+                const errorDetails = error.response?.data?.message || error.message;
+                const statusCode = error.response?.status;
+                window.Telegram?.WebApp?.showAlert(
+                    `Registration failed!\nStatus: ${statusCode}\nError: ${errorDetails}\nPlease check your connection and try again.`
+                );
             } else {
-                window.Telegram?.WebApp?.showAlert("Registration failed");
+                console.error('Unexpected Error:', error);
+                window.Telegram?.WebApp?.showAlert(
+                    `Unexpected error occurred!\nError: ${error instanceof Error ? error.message : 'Unknown error'}\nPlease try again later.`
+                );
             }
         }
     }, [username, onAddressChange, checkRegistration, formatAddress]);
