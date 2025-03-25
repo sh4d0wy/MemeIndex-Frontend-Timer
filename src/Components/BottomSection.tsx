@@ -199,7 +199,7 @@ const BottomSection = () => {
       try {
         // Get referral link and stats with timeout
         const [response, statsResponse] = await Promise.all([
-          axios.get(`https://backend-4hpn.onrender.com/api/user/getmessageid`, {
+          axios.get(`https://backend-4hpn.onrender.com/api/user/getmessageid/${walletAddress}`, {
             timeout: 5000
           }),
           axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`, {
