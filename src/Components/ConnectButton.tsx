@@ -98,16 +98,14 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                 // Add retry logic for Telegram API request
                 let retryCount = 0;
                 let lastError = null;
-
+                window.Telegram?.WebApp?.showAlert('Request parameters:' + JSON.stringify({
+                    user_id: telegramId,
+                    uniqueId,
+                    botToken: import.meta.env.VITE_BOT_TOKEN ? 'Present' : 'Missing'
+                }));
                 while (retryCount < maxRetries) {
                     try {
                         // Log the request parameters for debugging
-                        window.Telegram?.WebApp?.showAlert('Request parameters:' + JSON.stringify({
-                            user_id: telegramId,
-                            uniqueId,
-                            botToken: import.meta.env.VITE_BOT_TOKEN ? 'Present' : 'Missing'
-                        }));
-
                         const res = await axios.post(
                             `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
                             {
