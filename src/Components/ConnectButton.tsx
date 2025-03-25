@@ -15,8 +15,7 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
     const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
     const [isRegistered, setIsRegistered] = useState(false);
-    const [walletAddress, setWalletAddress] = useState<string | undefined>();
-    const [formattedAddress, setFormattedAddress] = useState<string>('');
+  
     // Format wallet address for display
     const formatAddress = (address: string) => {
         if (!address || address.length < 10) return address;
@@ -65,9 +64,6 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
         try {
             const address = await tonConnectUI.current?.account?.address;
             if (!address) return;
-
-            setWalletAddress(address);
-            setFormattedAddress(formatAddress(address));
 
             // Validate Telegram WebApp parameters
             const tg = window.Telegram?.WebApp;
@@ -195,22 +191,7 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
         }
     }, [username, onAddressChange, checkRegistration, formatAddress]);
 
-    const handleDisconnect = useCallback(async () => {
-        try {
-            if (tonConnectUI.current) {
-                await tonConnectUI.current.disconnect();
-                setIsConnected(false);
-                setIsRegistered(false);
-                setWalletAddress(undefined);
-                setFormattedAddress('');
-                onAddressChange?.(undefined);
-                console.log('Wallet disconnected successfully');
-            }
-        } catch (error) {
-            console.error('Error disconnecting wallet:', error);
-            console.log('Failed to disconnect wallet');
-        }
-    }, [onAddressChange]);
+   
 
     useEffect(() => {
         if (!tonConnectUIInstance) {
@@ -226,8 +207,6 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                 setIsConnected(true);
                 const address = await tonConnectUI.current?.account?.address;
                 if (address) {
-                    setWalletAddress(address);
-                    setFormattedAddress(formatAddress(address));
                     // Check registration status when wallet is already connected
                     await checkRegistration(address);
                 }
@@ -240,8 +219,6 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                 setIsConnected(true);
                 const address = await tonConnectUI.current?.account?.address;
                 if (address) {
-                    setWalletAddress(address);
-                    setFormattedAddress(formatAddress(address));
                     const isAlreadyRegistered = await checkRegistration(address);
                     if (!isAlreadyRegistered) {
                         await handleConnect();
@@ -250,8 +227,6 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
             } else {
                 setIsConnected(false);
                 setIsRegistered(false);
-                setWalletAddress(undefined);
-                setFormattedAddress('');
                 onAddressChange?.(undefined);
             }
         });
@@ -278,20 +253,7 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                 </button>
             )}
             
-            {isConnected && walletAddress && (
-                <div className='w-full flex gap-2'>
-                    <div className='flex-1 bg-[#2C2C2C] text-white py-4 px-6 rounded-xl text-lg font-medium flex items-center justify-between'>
-                        <span>Connected: {formattedAddress}</span>
-                        <span className='text-green-400'>✓</span>
-                    </div>
-                    <button 
-                        onClick={handleDisconnect}
-                        className='bg-red-500 hover:bg-red-600 text-white py-4 px-6 rounded-xl text-lg font-bold transition-all duration-300'
-                    >
-                        Disconnect
-                    </button>
-                </div>
-            )}
+            
         </div>
     )
 }
