@@ -55,19 +55,62 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             // Check if already registered first
             const isAlreadyRegistered = await checkRegistration(address);
             if (isAlreadyRegistered) return;
-            
-            // If not registered, register the user
-            const res = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
-                address,
-                username,
-                telegramId,
-                referralCode: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
-            });
-            
-            if (res.data) {
-                setIsRegistered(true);
-                onAddressChange?.(address);
-            }
+
+            try {
+                const uniqueId = `msg_${telegramId}_${Date.now()}`;
+                const res = await axios.post(
+                  `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
+                  {
+                    user_id: telegramId, // Required field
+                    result: {
+                      type: "article",
+                      id: uniqueId,
+                      title: "Hidden door to the MemeIndex Treasury found...",
+                      input_message_content: {
+                        message_text: "Hidden door to the MemeIndex Treasury found... Let's open it together!"
+                      },
+                      reply_markup: {
+                        inline_keyboard: [
+                          [
+                            {
+                              text: "Join Now 🚀",
+                              url: `https://t.me/MemeBattleArenaBot/app?startapp=${telegramId}`
+                            }
+                          ]
+                        ]
+                      }
+                    },
+                    allow_user_chats: true // Optional, allows sending in private chats
+                  },
+                  {
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    timeout: 10000 // 10 second timeout
+                  }
+                );
+              
+                console.log("Prepared Message Response:", res.data);
+
+                const response = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
+                    address,
+                    username,
+                    prePreparedMessageId:res.data.result.id,
+                    referralCode:telegramId,
+                    referredBy: window.Telegram?.WebApp?.initDataUnsafe?.start_param || ""
+                });
+                if (response.data) {
+                    setIsRegistered(true);
+                    onAddressChange?.(address);
+                }
+                console.log("Registration Response:", response.data);
+
+              
+              } catch (error: unknown) {
+                console.error('Telegram API Error:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                window.Telegram?.WebApp?.showAlert(`Telegram API Error: ${errorMessage}`);
+              }
         } catch (error) {
             if (error instanceof AxiosError) {
                 window.Telegram?.WebApp?.showAlert(error.response?.data?.message || "Registration failed");

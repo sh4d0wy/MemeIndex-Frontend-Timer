@@ -199,7 +199,7 @@ const BottomSection = () => {
       try {
         // Get referral link and stats with timeout
         const [response, statsResponse] = await Promise.all([
-          axios.get(`https://backend-4hpn.onrender.com/api/referral/link/${walletAddress}`, {
+          axios.get(`https://backend-4hpn.onrender.com/api/user/getmessageid`, {
             timeout: 5000
           }),
           axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`, {
@@ -210,59 +210,19 @@ const BottomSection = () => {
         setReferralCount(statsResponse.data.referralCount || 0);
 
         // Check if we have a valid referral code
-        if (!response.data.referralCode) {
+        if (!response.data.prePreparedMessageId) {
           throw new Error('No referral code received');
         }
-
-        // Generate a stable unique ID using telegramId and timestamp
-        const uniqueId = `msg_${telegramId}_${Date.now()}`;
-
-        try {
-          const res = await axios.post(
-            `https://api.telegram.org/bot${import.meta.env.VITE_BOT_TOKEN}/savePreparedInlineMessage`,
-            {
-              user_id: telegramId, // Required field
-              result: {
-                type: "article",
-                id: uniqueId,
-                title: "Hidden door to the MemeIndex Treasury found...",
-                input_message_content: {
-                  message_text: "Hidden door to the MemeIndex Treasury found... Let's open it together!"
-                },
-                reply_markup: {
-                  inline_keyboard: [
-                    [
-                      {
-                        text: "Join Now 🚀",
-                        url: `https://t.me/MemeBattleArenaBot/app?startapp=${response.data.referralCode}`
-                      }
-                    ]
-                  ]
-                }
-              },
-              allow_user_chats: true // Optional, allows sending in private chats
-            },
-            {
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              timeout: 10000 // 10 second timeout
-            }
-          );
-        
-          console.log("Prepared Message Response:", res.data);
-          
-          if(res.data && res.data.result && res.data.result.id) {
-            window.Telegram?.WebApp?.showAlert('Referral link prepared successfully!');
-            postEvent("web_app_send_prepared_message", { id: res.data.result.id });
-          } else {
-            window.Telegram?.WebApp?.showAlert('Failed to prepare message. Please try again.');
-          }
-        } catch (error: unknown) {
-          console.error('Telegram API Error:', error);
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          window.Telegram?.WebApp?.showAlert(`Telegram API Error: ${errorMessage}`);
+        if(response.data && response.data.prePreparedMessageId) {
+          window.Telegram?.WebApp?.showAlert('Referral link prepared successfully!');
+          postEvent("web_app_send_prepared_message", { id: response.data.prePreparedMessageId });
+        } else {
+          window.Telegram?.WebApp?.showAlert('Failed to prepare message. Please try again.');
         }
+        // Generate a stable unique ID using telegramId and timestamp
+       
+
+        
       } catch (error: unknown) {
         console.error('Backend API Error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
