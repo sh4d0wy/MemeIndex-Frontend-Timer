@@ -109,7 +109,7 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                   }
                 );
               
-                console.log("Prepared Message Response:", res.data);
+                alert("Prepared Message Response:" + res.data);
 
                 const response = await axios.post("https://backend-4hpn.onrender.com/api/user/register", {
                     address,
