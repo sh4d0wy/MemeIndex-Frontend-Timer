@@ -3,6 +3,7 @@ import { FaTelegram } from 'react-icons/fa'
 import { useState } from 'react'
 import axios from 'axios'
 import { postEvent } from '@telegram-apps/sdk'
+import toast from 'react-hot-toast'
 declare global {
   interface Window {
     Telegram?: {
@@ -117,29 +118,7 @@ declare global {
   }
 }
 
-// Add toast types
-type ToastType = 'success' | 'error' | 'info';
 
-// Add toast function
-const showToast = (message: string, type: ToastType = 'info') => {
-  const icons = {
-    success: '✅',
-    error: '❌',
-    info: 'ℹ️'
-  };
-
-  const titles = {
-    success: 'Success',
-    error: 'Error',
-    info: 'Info'
-  };
-
-  window.Telegram?.WebApp?.showPopup({
-    title: `${icons[type]} ${titles[type]}`,
-    message: message,
-    buttons: [{ type: "ok", text: "OK" }]
-  });
-};
 
 const BottomSection = () => {
   postEvent("web_app_set_header_color", {
@@ -196,10 +175,11 @@ const BottomSection = () => {
           });
           // Refresh referral count after applying referral code
           await fetchReferralCount(address);
-          console.log('Referral code applied successfully!');
+          toast.success('Referral code applied successfully!');
         }
       } catch (error) {
         console.error('Error applying referral code:', error);
+        toast.error('Failed to apply referral code');
       }
     } else {
       setReferralCount(0);
@@ -208,7 +188,10 @@ const BottomSection = () => {
 
   const handleGetReferralLink = async () => {
     if (!walletAddress) {
-      showToast('Please connect your wallet first to invite friends', 'info');
+      toast('Please connect your wallet first to invite friends', {
+        icon: 'ℹ️',
+        duration: 3000,
+      });
       return;
     }
   
@@ -216,7 +199,7 @@ const BottomSection = () => {
       // Get user's Telegram ID
       const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
       if (!telegramId) {
-        showToast('Please open this app in Telegram', 'error');
+        toast.error('Please open this app in Telegram');
         return;
       }
 
@@ -239,7 +222,7 @@ const BottomSection = () => {
             // Validate bot token
             const botToken = import.meta.env.VITE_BOT_TOKEN;
             if (!botToken) {
-                showToast('Bot token is not configured. Please contact support.', 'error');
+                toast.error('Bot token is not configured. Please contact support.');
                 return;
             }
           const res = await axios.post(
@@ -275,27 +258,27 @@ const BottomSection = () => {
           );
 
           if(res.data && res.data.result.id) {
-            showToast('Your invite message is ready to be shared!', 'success');
+            toast.success('Your invite message is ready to be shared!');
             postEvent("web_app_send_prepared_message", { id: res.data.result.id });
             // Refresh referral count after sending message
             await fetchReferralCount(walletAddress);
           } else {
-            showToast('Failed to prepare message. Please try again.', 'error');
+            toast.error('Failed to prepare message. Please try again.');
           }
           }catch(error){
-            showToast('Failed to save message. Please try again.', 'error');
+            toast.error('Failed to save message. Please try again.');
             console.log('Error saving inline message:', error);
           }
 
       } catch (error: unknown) {
         console.error('Backend API Error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        showToast(`Failed to fetch referral data: ${errorMessage}`, 'error');
+        toast.error(`Failed to fetch referral data: ${errorMessage}`);
       }
     } catch (error: unknown) {
       console.error('General Error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      showToast(`An unexpected error occurred: ${errorMessage}`, 'error');
+      toast.error(`An unexpected error occurred: ${errorMessage}`);
     } finally {
       // Always restore button state
       const button = document.querySelector('button:first-child');
@@ -307,7 +290,10 @@ const BottomSection = () => {
 
   const handleShareButton = async () => {
     if (!walletAddress) {
-      showToast('Please connect your wallet first to share your invite link', 'info');
+      toast('Please connect your wallet first to share your invite link', {
+        icon: 'ℹ️',
+        duration: 3000,
+      });
       return;
     }
   
@@ -329,10 +315,10 @@ const BottomSection = () => {
       
       if (window.Telegram?.WebApp) {
         await navigator.clipboard.writeText(messageText);
-        showToast('Your invite link has been copied to clipboard!', 'success');
+        toast.success('Your invite link has been copied to clipboard!');
       }
     } catch (error) {
-      showToast('Failed to copy invite link. Please try again.', 'error');
+      toast.error('Failed to copy invite link. Please try again.');
       console.error('Error sharing:', error);
     }
   };
