@@ -10,7 +10,7 @@ interface ConnectButtonProps {
     pendingMessageId?: string | null;
 }
 
-const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps) => {
+const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
     const tonConnectUI = useRef<TonConnectUI | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
@@ -22,12 +22,6 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
         return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
     };
 
-    // Store pendingMessageId when it changes
-    useEffect(() => {
-        if (pendingMessageId) {
-            // Handle pending message ID
-        }
-    }, [pendingMessageId]);
 
     // Check registration status
     const checkRegistration = useCallback(async (address: string) => {

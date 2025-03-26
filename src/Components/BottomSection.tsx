@@ -158,6 +158,7 @@ const BottomSection = () => {
       try {
         // Get the referral code from start_param
         const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
+        window.Telegram?.WebApp?.showAlert("start param " + startParam);
         if (startParam) {
           // Apply the referral code
           console.log("start param " + startParam);
@@ -230,7 +231,7 @@ const BottomSection = () => {
                     [
                       {
                         text: "Join Now 🚀",
-                        url: `https://t.me/MemeBattleArenaBot/app?startapp=${telegramId}`
+                        url: `https://t.me/MemeBattleArenaBot/MemeBattleArena?startapp=${telegramId}`
                       }
                     ]
                   ]
