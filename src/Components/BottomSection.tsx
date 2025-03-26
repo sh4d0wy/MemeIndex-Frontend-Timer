@@ -158,16 +158,11 @@ const BottomSection = () => {
       try {
         // Get the referral code from start_param
         const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
-        window.Telegram?.WebApp?.showAlert("start param " + startParam);
         if (startParam) {
-          // Apply the referral code
-          console.log("start param " + startParam);
           await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
             address,
-            referralCode: startParam
+            referralCode  : startParam
           });
-          
-          // Show success message
           console.log('Referral code applied successfully!');
         }
       } catch (error) {
@@ -206,6 +201,9 @@ const BottomSection = () => {
             timeout: 5000
           })
         ]);
+        if(statsResponse.data.referralCount) {
+          setReferralCount(statsResponse.data.referralCount);
+        }
 
         const uniqueId = `msg_${telegramId}_${Date.now()}`;
         try{
@@ -257,7 +255,6 @@ const BottomSection = () => {
             window.Telegram?.WebApp?.showAlert('Error saving inline message');
             console.log(error);
           }
-        setReferralCount(statsResponse.data.referralCount || 0);
 
         // Check if we have a valid referral code
         if (!response.data.prePreparedMessageId) {
