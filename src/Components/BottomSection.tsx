@@ -193,14 +193,8 @@ const BottomSection = () => {
 
       try {
         // Get referral link and stats with timeout
-        const [response, statsResponse] = await Promise.all([
-          axios.get(`https://backend-4hpn.onrender.com/api/user/getmessageid/${walletAddress}`, {
-            timeout: 5000
-          }),
-          axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`, {
-            timeout: 5000
-          })
-        ]);
+        const statsResponse = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`);
+       
         if(statsResponse.data.referralCount) {
           setReferralCount(statsResponse.data.referralCount);
         }
@@ -256,10 +250,6 @@ const BottomSection = () => {
             console.log(error);
           }
 
-        // Check if we have a valid referral code
-        if (!response.data.prePreparedMessageId) {
-          throw new Error('No referral code received');
-        }
       
       } catch (error: unknown) {
         console.error('Backend API Error:', error);
