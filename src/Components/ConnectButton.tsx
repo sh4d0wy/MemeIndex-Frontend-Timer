@@ -83,20 +83,13 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                 return;
             }
 
-            // Validate bot token
-            const botToken = import.meta.env.VITE_BOT_TOKEN;
-            if (!botToken) {
-                console.log('Bot token is not configured. Please contact support.');
-                return;
-            }
+          
 
             // Check if already registered first
             const isAlreadyRegistered = await checkRegistration(address);
             if (isAlreadyRegistered) return;
 
-            try {
-                const uniqueId = `msg_${telegramId}_${Date.now()}`;
-                
+            try {                
                 // Add retry logic for Telegram API request
                 let retryCount = 0;
                 let lastError = null;
@@ -105,43 +98,11 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                     try {
                         // Log the request parameters for debugging (without exposing the token)
 
-                        const res = await axios.post(
-                            `https://api.telegram.org/bot${botToken}/savePreparedInlineMessage`,
-                            {
-                                user_id: telegramId,
-                                result: {
-                                    type: "article",
-                                    id: uniqueId,
-                                    title: "Hidden door to the MemeIndex Treasury found...",
-                                    input_message_content: {
-                                        message_text: "Hidden door to the MemeIndex Treasury found... Let's open it together!"
-                                    },
-                                    reply_markup: {
-                                        inline_keyboard: [
-                                            [
-                                                {
-                                                    text: "Join Now 🚀",
-                                                    url: `https://t.me/MemeBattleArenaBot/app?startapp=${telegramId}`
-                                                }
-                                            ]
-                                        ]
-                                    }
-                                },
-                                allow_user_chats: true
-                            },
-                            {
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                timeout: 15000
-                            }
-                        );
-
-                        if (res.data) {
+                      
                            const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register',{
                             address: address,
                             username: username,
-                            prePreparedMessageId: res.data.result.id,
+                            prePreparedMessageId: "123456",
                             referralCode: telegramId,
                             referredBy: ''
                            })
@@ -150,7 +111,7 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
                            }
                             
                             return;
-                        }
+                        
                     } catch (error) {
                         lastError = error;
                         console.error(`Attempt ${retryCount + 1} failed:`, error);

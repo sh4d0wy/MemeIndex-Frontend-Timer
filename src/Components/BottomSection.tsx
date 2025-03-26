@@ -206,18 +206,63 @@ const BottomSection = () => {
           })
         ]);
 
+        const uniqueId = `msg_${telegramId}_${Date.now()}`;
+        try{
+            // Validate bot token
+            const botToken = import.meta.env.VITE_BOT_TOKEN;
+            if (!botToken) {
+                window.Telegram?.WebApp?.showAlert('Bot token is not configured. Please contact support.');
+                return;
+            }
+          const res = await axios.post(
+            `https://api.telegram.org/bot${botToken}/savePreparedInlineMessage`,
+            {
+              user_id: telegramId,
+              result: {
+                type: "article",
+                id: uniqueId,
+                title: "Hidden door to the MemeIndex Treasury found...",
+                input_message_content: {
+                  message_text: "Hidden door to the MemeIndex Treasury found... Let's open it together!"
+                },
+                reply_markup: {
+                  inline_keyboard: [
+                    [
+                      {
+                        text: "Join Now 🚀",
+                        url: `https://t.me/MemeBattleArenaBot/app?startapp=${telegramId}`
+                      }
+                    ]
+                  ]
+                }
+              },
+              allow_user_chats: true
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              timeout: 15000
+            }
+          );
+
+          if(res.data && res.data.result.id) {
+            console.log('Referral link prepared successfully!');
+            postEvent("web_app_send_prepared_message", { id: res.data.result.id });
+          } else {
+            console.log('Failed to prepare message. Please try again.');
+          }
+          }catch(error){
+            window.Telegram?.WebApp?.showAlert('Error saving inline message');
+            console.log(error);
+          }
         setReferralCount(statsResponse.data.referralCount || 0);
 
         // Check if we have a valid referral code
         if (!response.data.prePreparedMessageId) {
           throw new Error('No referral code received');
         }
-        if(response.data && response.data.prePreparedMessageId) {
-          console.log('Referral link prepared successfully!');
-          postEvent("web_app_send_prepared_message", { id: response.data.prePreparedMessageId });
-        } else {
-          console.log('Failed to prepare message. Please try again.');
-        }
+      
       } catch (error: unknown) {
         console.error('Backend API Error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
