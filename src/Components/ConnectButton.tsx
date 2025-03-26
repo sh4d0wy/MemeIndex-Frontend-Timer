@@ -1,4 +1,4 @@
-import  { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { TonConnectUI } from '@tonconnect/ui'
 import axios, { AxiosError } from 'axios';
 
@@ -10,13 +10,6 @@ interface ConnectButtonProps {
     pendingMessageId?: string | null;
 }
 
-interface WalletData {
-    address: string;
-    username: string;
-    isRegistered: boolean;
-    lastConnected: number;
-}
-
 const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
     const tonConnectUI = useRef<TonConnectUI | null>(null);
     const [isConnected, setIsConnected] = useState(false);
@@ -24,35 +17,22 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
     const [isRegistered, setIsRegistered] = useState(false);
     const [walletAddress, setWalletAddress] = useState<string | undefined>();
 
-    // Save wallet data to localStorage
-    const saveWalletData = (data: WalletData) => {
-        localStorage.setItem('walletData', JSON.stringify(data));
-    };
-
-    // Get wallet data from localStorage
-    const getWalletData = (): WalletData | null => {
-        const data = localStorage.getItem('walletData');
-        return data ? JSON.parse(data) : null;
-    };
-
-    // Clear wallet data from localStorage
-    const clearWalletData = () => {
-        tonConnectUI.current?.disconnect();
-        localStorage.removeItem('walletData');
-    };
-
     // Check registration status
     const checkRegistration = useCallback(async (address: string) => {
         try {
             const res = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${address}`);
             if (res.data?.isRegistered) {
                 setIsRegistered(true);
+                setIsConnected(true);
+                setWalletAddress(address);
                 onAddressChange?.(address);
                 return true;
             }
+            setIsRegistered(false);
             return false;
         } catch (error) {
             console.log(error);
+            setIsRegistered(false);
             return false;
         }
     }, [onAddressChange]);
@@ -98,15 +78,6 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             // Check if already registered first
             const isAlreadyRegistered = await checkRegistration(address);
             if (isAlreadyRegistered) {
-                // Save to localStorage if already registered
-                saveWalletData({
-                    address,
-                    username,
-                    isRegistered: true,
-                    lastConnected: Date.now()
-                });
-                setIsConnected(true);
-                setWalletAddress(address);
                 return;
             }
 
@@ -126,15 +97,10 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
 
                         if(response.data) {
                             console.log('Registered successfully!');
-                            // Save to localStorage after successful registration
-                            saveWalletData({
-                                address,
-                                username,
-                                isRegistered: true,
-                                lastConnected: Date.now()
-                            });
                             setIsConnected(true);
+                            setIsRegistered(true);
                             setWalletAddress(address);
+                            onAddressChange?.(address);
                             return;
                         }
                     } catch (error) {
@@ -190,26 +156,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             if (isConnected) {
                 const address = await tonConnectUI.current?.account?.address;
                 if (address) {
-                    setWalletAddress(address);
-                    // Get stored wallet data
-                    const storedData = getWalletData();
-                    
-                    // Check if stored data exists and matches current wallet
-                    if (storedData && storedData.address === address) {
-                        // Verify registration status with backend
-                        const isRegistered = await checkRegistration(address);
-                        if (isRegistered) {
-                            setIsConnected(true);
-                            setIsRegistered(true);
-                            setUsername(storedData.username);
-                        } else {
-                            // Clear invalid stored data
-                            clearWalletData();
-                        }
-                    } else {
-                        // Clear invalid stored data
-                        clearWalletData();
-                    }
+                    await checkRegistration(address);
                 }
             }
         };
@@ -219,32 +166,12 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             if (wallet) {
                 const address = await tonConnectUI.current?.account?.address;
                 if (address) {
-                    setWalletAddress(address);
-                    // Get stored wallet data
-                    const storedData = getWalletData();
-                    
-                    // Check if stored data exists and matches current wallet
-                    if (storedData && storedData.address === address) {
-                        // Verify registration status with backend
-                        const isRegistered = await checkRegistration(address);
-                        if (isRegistered) {
-                            setIsConnected(true);
-                            setIsRegistered(true);
-                            setUsername(storedData.username);
-                        } else {
-                            // Clear invalid stored data
-                            clearWalletData();
-                        }
-                    } else {
-                        // Clear invalid stored data
-                        clearWalletData();
-                    }
+                    await checkRegistration(address);
                 }
             } else {
                 setIsConnected(false);
                 setIsRegistered(false);
                 setWalletAddress(undefined);
-                clearWalletData();
                 onAddressChange?.(undefined);
             }
         });
@@ -260,11 +187,13 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         }
     }
 
-    const handleDisconnect = () => {
+    const handleDisconnect = async () => {
+        if (tonConnectUI.current) {
+            await tonConnectUI.current.disconnect();
+        }
         setIsConnected(false);
         setIsRegistered(false);
         setWalletAddress(undefined);
-        clearWalletData();
         onAddressChange?.(undefined);
     }
 
