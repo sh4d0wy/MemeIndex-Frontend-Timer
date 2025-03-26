@@ -36,6 +36,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
 
     // Clear wallet data from localStorage
     const clearWalletData = () => {
+        tonConnectUI.current?.disconnect();
         localStorage.removeItem('walletData');
     };
 
