@@ -13,21 +13,21 @@ function App() {
       <Toaster
         position="top-center"
         toastOptions={{
-          duration: 3000,
+          duration: 2000,
           style: {
             background: '#ffffff',
             color: '#0165FF',
-            borderRadius: '15px',
-            fontSize: '14px',
-            padding:'10px',
+            borderRadius: '12px',
+            fontSize: '12px',
+            padding:'5px',
             fontWeight:'bold'
           },
           success: {
-            duration: 3000,
+            duration: 2000,
             
           },
           error: {
-            duration: 4000,
+            duration: 2000,
             
           },
         }}

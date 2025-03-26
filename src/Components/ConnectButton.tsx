@@ -10,18 +10,34 @@ interface ConnectButtonProps {
     pendingMessageId?: string | null;
 }
 
+interface WalletData {
+    address: string;
+    username: string;
+    isRegistered: boolean;
+    lastConnected: number;
+}
+
 const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
     const tonConnectUI = useRef<TonConnectUI | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
     const [isRegistered, setIsRegistered] = useState(false);
-  
-    // Format wallet address for display
-    const formatAddress = (address: string) => {
-        if (!address || address.length < 10) return address;
-        return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+
+    // Save wallet data to localStorage
+    const saveWalletData = (data: WalletData) => {
+        localStorage.setItem('walletData', JSON.stringify(data));
     };
 
+    // Get wallet data from localStorage
+    const getWalletData = (): WalletData | null => {
+        const data = localStorage.getItem('walletData');
+        return data ? JSON.parse(data) : null;
+    };
+
+    // Clear wallet data from localStorage
+    const clearWalletData = () => {
+        localStorage.removeItem('walletData');
+    };
 
     // Check registration status
     const checkRegistration = useCallback(async (address: string) => {
@@ -77,35 +93,44 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 return;
             }
 
-          
-
             // Check if already registered first
             const isAlreadyRegistered = await checkRegistration(address);
-            if (isAlreadyRegistered) return;
+            if (isAlreadyRegistered) {
+                // Save to localStorage if already registered
+                saveWalletData({
+                    address,
+                    username,
+                    isRegistered: true,
+                    lastConnected: Date.now()
+                });
+                return;
+            }
 
             try {                
-                // Add retry logic for Telegram API request
                 let retryCount = 0;
                 let lastError = null;
 
                 while (retryCount < maxRetries) {
                     try {
-                        // Log the request parameters for debugging (without exposing the token)
-
-                      
-                           const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register',{
+                        const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register', {
                             address: address,
                             username: username,
                             prePreparedMessageId: "123456",
                             referralCode: telegramId,
                             referredBy: ''
-                           })
-                           if(response.data){
+                        });
+
+                        if(response.data) {
                             console.log('Registered successfully!');
-                           }
-                            
+                            // Save to localStorage after successful registration
+                            saveWalletData({
+                                address,
+                                username,
+                                isRegistered: true,
+                                lastConnected: Date.now()
+                            });
                             return;
-                        
+                        }
                     } catch (error) {
                         lastError = error;
                         console.error(`Attempt ${retryCount + 1} failed:`, error);
@@ -114,7 +139,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                             const errorMessage = error.response?.data?.description || error.message;
                             if (errorMessage.includes('webapp popup params invalid')) {
                                 console.log('Invalid Telegram WebApp parameters. Please try again or contact support.');
-                                return; // Don't retry for invalid parameters
+                                return;
                             }
                             
                             console.log(`Error: ${errorMessage}\nAttempt ${retryCount + 1}/${maxRetries}`);
@@ -144,9 +169,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             console.error('Unexpected Error:', error);
             console.log(`An unexpected error occurred.\nError: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
-    }, [username, onAddressChange, checkRegistration, formatAddress]);
-
-   
+    }, [username, onAddressChange, checkRegistration]);
 
     useEffect(() => {
         if (!tonConnectUIInstance) {
@@ -159,11 +182,27 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         const checkConnection = async () => {
             const isConnected = await tonConnectUI.current?.connected;
             if (isConnected) {
-                setIsConnected(true);
                 const address = await tonConnectUI.current?.account?.address;
                 if (address) {
-                    // Check registration status when wallet is already connected
-                    await checkRegistration(address);
+                    // Get stored wallet data
+                    const storedData = getWalletData();
+                    
+                    // Check if stored data exists and matches current wallet
+                    if (storedData && storedData.address === address) {
+                        // Verify registration status with backend
+                        const isRegistered = await checkRegistration(address);
+                        if (isRegistered) {
+                            setIsConnected(true);
+                            setIsRegistered(true);
+                            setUsername(storedData.username);
+                        } else {
+                            // Clear invalid stored data
+                            clearWalletData();
+                        }
+                    } else {
+                        // Clear invalid stored data
+                        clearWalletData();
+                    }
                 }
             }
         };
@@ -171,17 +210,32 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
 
         const unsubscribe = tonConnectUI.current.onStatusChange(async (wallet) => {
             if (wallet) {
-                setIsConnected(true);
                 const address = await tonConnectUI.current?.account?.address;
                 if (address) {
-                    const isAlreadyRegistered = await checkRegistration(address);
-                    if (!isAlreadyRegistered) {
-                        await handleConnect();
+                    // Get stored wallet data
+                    const storedData = getWalletData();
+                    
+                    // Check if stored data exists and matches current wallet
+                    if (storedData && storedData.address === address) {
+                        // Verify registration status with backend
+                        const isRegistered = await checkRegistration(address);
+                        if (isRegistered) {
+                            setIsConnected(true);
+                            setIsRegistered(true);
+                            setUsername(storedData.username);
+                        } else {
+                            // Clear invalid stored data
+                            clearWalletData();
+                        }
+                    } else {
+                        // Clear invalid stored data
+                        clearWalletData();
                     }
                 }
             } else {
                 setIsConnected(false);
                 setIsRegistered(false);
+                clearWalletData();
                 onAddressChange?.(undefined);
             }
         });
@@ -189,7 +243,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         return () => {
             unsubscribe();
         };
-    }, [handleConnect, onAddressChange, checkRegistration, formatAddress]);
+    }, [handleConnect, onAddressChange, checkRegistration]);
 
     const openModal = async () => {
         if (tonConnectUI.current) {
@@ -207,8 +261,6 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                     {isRegistered ? 'Reconnect Wallet' : 'Connect Wallet'}
                 </button>
             )}
-            
-            
         </div>
     )
 }

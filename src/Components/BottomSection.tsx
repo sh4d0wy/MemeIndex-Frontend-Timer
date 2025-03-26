@@ -258,7 +258,7 @@ const BottomSection = () => {
           );
 
           if(res.data && res.data.result.id) {
-            toast.success('Your invite message is ready to be shared!');
+            
             postEvent("web_app_send_prepared_message", { id: res.data.result.id });
             // Refresh referral count after sending message
             await fetchReferralCount(walletAddress);
@@ -337,8 +337,8 @@ const BottomSection = () => {
           onClick={handleGetReferralLink}
           className={`w-full py-4 rounded-xl font-bold text-xl flex items-center justify-center gap-2 transition-all duration-300 ${
             walletAddress 
-              ? 'bg-white text-blue-400 hover:bg-blue-50 active:scale-95' 
-              : 'bg-white/50 text-blue-400/50 cursor-not-allowed'
+              ? 'bg-white text-blue-400 hover:bg-blue-50 active:scale-95 cursor-pointer' 
+              : 'bg-white/70 text-blue-400/60 cursor-not-allowed'
           }`}
           disabled={!walletAddress}
         >
@@ -353,8 +353,8 @@ const BottomSection = () => {
           disabled={!walletAddress}
           className={`text-blue-400 w-1/5 py-4 rounded-xl text-xl flex items-center justify-center gap-2 transition-all duration-300 ${
             walletAddress 
-              ? 'bg-white hover:bg-blue-50 active:scale-95' 
-              : 'bg-white/50 text-blue-400/50 cursor-not-allowed'
+              ? 'bg-white hover:bg-blue-50 active:scale-95 cursor-pointer' 
+              : 'bg-white/70 text-blue-400/80 cursor-not-allowed'
           }`}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
