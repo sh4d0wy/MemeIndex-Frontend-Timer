@@ -117,6 +117,30 @@ declare global {
   }
 }
 
+// Add toast types
+type ToastType = 'success' | 'error' | 'info';
+
+// Add toast function
+const showToast = (message: string, type: ToastType = 'info') => {
+  const icons = {
+    success: '✅',
+    error: '❌',
+    info: 'ℹ️'
+  };
+
+  const titles = {
+    success: 'Success',
+    error: 'Error',
+    info: 'Info'
+  };
+
+  window.Telegram?.WebApp?.showPopup({
+    title: `${icons[type]} ${titles[type]}`,
+    message: message,
+    buttons: [{ type: "ok", text: "OK" }]
+  });
+};
+
 const BottomSection = () => {
   postEvent("web_app_set_header_color", {
     color: "#006FFF"
@@ -184,7 +208,7 @@ const BottomSection = () => {
 
   const handleGetReferralLink = async () => {
     if (!walletAddress) {
-      console.log('Please connect your wallet first');
+      showToast('Please connect your wallet first to invite friends', 'info');
       return;
     }
   
@@ -192,7 +216,7 @@ const BottomSection = () => {
       // Get user's Telegram ID
       const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
       if (!telegramId) {
-        console.log('Please open this app in Telegram');
+        showToast('Please open this app in Telegram', 'error');
         return;
       }
 
@@ -215,7 +239,7 @@ const BottomSection = () => {
             // Validate bot token
             const botToken = import.meta.env.VITE_BOT_TOKEN;
             if (!botToken) {
-                console.log('Bot token is not configured. Please contact support.');
+                showToast('Bot token is not configured. Please contact support.', 'error');
                 return;
             }
           const res = await axios.post(
@@ -251,26 +275,27 @@ const BottomSection = () => {
           );
 
           if(res.data && res.data.result.id) {
-            console.log('Referral link prepared successfully!');
+            showToast('Your invite message is ready to be shared!', 'success');
             postEvent("web_app_send_prepared_message", { id: res.data.result.id });
             // Refresh referral count after sending message
             await fetchReferralCount(walletAddress);
           } else {
-            console.log('Failed to prepare message. Please try again.');
+            showToast('Failed to prepare message. Please try again.', 'error');
           }
           }catch(error){
+            showToast('Failed to save message. Please try again.', 'error');
             console.log('Error saving inline message:', error);
           }
 
       } catch (error: unknown) {
         console.error('Backend API Error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.log(`Error fetching referral data: ${errorMessage}`);
+        showToast(`Failed to fetch referral data: ${errorMessage}`, 'error');
       }
     } catch (error: unknown) {
       console.error('General Error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.log(`Error: ${errorMessage}`);
+      showToast(`An unexpected error occurred: ${errorMessage}`, 'error');
     } finally {
       // Always restore button state
       const button = document.querySelector('button:first-child');
@@ -282,7 +307,7 @@ const BottomSection = () => {
 
   const handleShareButton = async () => {
     if (!walletAddress) {
-      console.log('Please connect your wallet first');
+      showToast('Please connect your wallet first to share your invite link', 'info');
       return;
     }
   
@@ -304,9 +329,10 @@ const BottomSection = () => {
       
       if (window.Telegram?.WebApp) {
         await navigator.clipboard.writeText(messageText);
-        console.log('Share link copied to clipboard!');
+        showToast('Your invite link has been copied to clipboard!', 'success');
       }
     } catch (error) {
+      showToast('Failed to copy invite link. Please try again.', 'error');
       console.error('Error sharing:', error);
     }
   };
