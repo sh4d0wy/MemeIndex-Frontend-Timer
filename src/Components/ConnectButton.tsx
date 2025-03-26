@@ -238,7 +238,7 @@ const ConnectButton = ({ onAddressChange, pendingMessageId }: ConnectButtonProps
 
     const openModal = async () => {
         if (tonConnectUI.current) {
-            await tonConnectUI.current.openModal();
+            await tonConnectUI.current.openModal()
         }
     }
 
