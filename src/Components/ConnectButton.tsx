@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { TonConnectUI } from '@tonconnect/ui'
 import axios, { AxiosError } from 'axios';
+import toast from 'react-hot-toast';
 
 // Singleton instance
 let tonConnectUIInstance: TonConnectUI | null = null;
@@ -31,7 +32,8 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             setIsRegistered(false);
             return false;
         } catch (error) {
-            console.log(error);
+            console.error('Error checking registration:', error);
+            toast.error('Failed to verify wallet registration');
             setIsRegistered(false);
             return false;
         }
@@ -47,6 +49,8 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         
         if (tgId && telegramUsername) {
             setUsername(telegramUsername);
+        } else {
+            toast.error('Telegram user information not available');
         }
     }, []);
 
@@ -55,29 +59,33 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
 
         try {
             const address = await tonConnectUI.current?.account?.address;
-            if (!address) return;
+            if (!address) {
+                toast.error('Failed to get wallet address');
+                return;
+            }
 
             // Validate Telegram WebApp parameters
             const tg = window.Telegram?.WebApp;
             if (!tg) {
-                console.log('Telegram WebApp is not initialized');
+                toast.error('Telegram WebApp is not initialized');
                 return;
             }
 
             const telegramId = tg.initDataUnsafe?.user?.id;
             if (!telegramId) {
-                console.log('Telegram user ID is not available');
+                toast.error('Telegram user ID is not available');
                 return;
             }
 
             if (!username) {
-                console.log('Username is not available');
+                toast.error('Username is not available');
                 return;
             }
 
             // Check if already registered first
             const isAlreadyRegistered = await checkRegistration(address);
             if (isAlreadyRegistered) {
+                toast.success('Wallet connected successfully!');
                 return;
             }
 
@@ -101,6 +109,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                             setIsRegistered(true);
                             setWalletAddress(address);
                             onAddressChange?.(address);
+                            toast.success('Wallet registered and connected successfully!');
                             return;
                         }
                     } catch (error) {
@@ -110,16 +119,18 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                         if (error instanceof AxiosError) {
                             const errorMessage = error.response?.data?.description || error.message;
                             if (errorMessage.includes('webapp popup params invalid')) {
-                                console.log('Invalid Telegram WebApp parameters. Please try again or contact support.');
+                                toast.error('Invalid Telegram WebApp parameters. Please try again or contact support.');
                                 return;
                             }
                             
                             console.log(`Error: ${errorMessage}\nAttempt ${retryCount + 1}/${maxRetries}`);
                             
                             if (error.code === 'ECONNABORTED') {
-                                console.log('Request timed out, retrying...');
+                                toast.error('Request timed out, retrying...');
                             } else if (error.code === 'ERR_NETWORK') {
-                                console.log('Network error, retrying...');
+                                toast.error('Network error, retrying...');
+                            } else {
+                                toast.error(errorMessage || 'Registration failed');
                             }
                         }
                         
@@ -135,11 +146,11 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             } catch (error: unknown) {
                 console.error('Telegram API Error:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                console.log(`Failed to prepare message.\nError: ${errorMessage}\nPlease try again or contact support.`);
+                toast.error(`Failed to register wallet: ${errorMessage}`);
             }
         } catch (error) {
             console.error('Unexpected Error:', error);
-            console.log(`An unexpected error occurred.\nError: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            toast.error('An unexpected error occurred while connecting wallet');
         }
     }, [username, onAddressChange, checkRegistration]);
 
@@ -152,27 +163,38 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         tonConnectUI.current = tonConnectUIInstance;
 
         const checkConnection = async () => {
-            const isConnected = await tonConnectUI.current?.connected;
-            if (isConnected) {
-                const address = await tonConnectUI.current?.account?.address;
-                if (address) {
-                    await checkRegistration(address);
+            try {
+                const isConnected = await tonConnectUI.current?.connected;
+                if (isConnected) {
+                    const address = await tonConnectUI.current?.account?.address;
+                    if (address) {
+                        await checkRegistration(address);
+                    }
                 }
+            } catch (error) {
+                console.error('Error checking connection:', error);
+                toast.error('Failed to check wallet connection');
             }
         };
         checkConnection();
 
         const unsubscribe = tonConnectUI.current.onStatusChange(async (wallet) => {
-            if (wallet) {
-                const address = await tonConnectUI.current?.account?.address;
-                if (address) {
-                    await checkRegistration(address);
+            try {
+                if (wallet) {
+                    const address = await tonConnectUI.current?.account?.address;
+                    if (address) {
+                        await checkRegistration(address);
+                    }
+                } else {
+                    setIsConnected(false);
+                    setIsRegistered(false);
+                    setWalletAddress(undefined);
+                    onAddressChange?.(undefined);
+                    toast.success('Wallet disconnected successfully');
                 }
-            } else {
-                setIsConnected(false);
-                setIsRegistered(false);
-                setWalletAddress(undefined);
-                onAddressChange?.(undefined);
+            } catch (error) {
+                console.error('Error handling wallet status change:', error);
+                toast.error('Failed to handle wallet status change');
             }
         });
 
@@ -182,19 +204,32 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
     }, [handleConnect, onAddressChange, checkRegistration]);
 
     const openModal = async () => {
-        if (tonConnectUI.current) {
-            await tonConnectUI.current.openModal()
+        try {
+            if (tonConnectUI.current) {
+                await tonConnectUI.current.openModal();
+            } else {
+                toast.error('Failed to open wallet connection modal');
+            }
+        } catch (error) {
+            console.error('Error opening modal:', error);
+            toast.error('Failed to open wallet connection modal');
         }
     }
 
     const handleDisconnect = async () => {
-        if (tonConnectUI.current) {
-            await tonConnectUI.current.disconnect();
+        try {
+            if (tonConnectUI.current) {
+                await tonConnectUI.current.disconnect();
+            }
+            setIsConnected(false);
+            setIsRegistered(false);
+            setWalletAddress(undefined);
+            onAddressChange?.(undefined);
+            toast.success('Wallet disconnected successfully');
+        } catch (error) {
+            console.error('Error disconnecting wallet:', error);
+            toast.error('Failed to disconnect wallet');
         }
-        setIsConnected(false);
-        setIsRegistered(false);
-        setWalletAddress(undefined);
-        onAddressChange?.(undefined);
     }
 
     return (
