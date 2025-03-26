@@ -16,10 +16,11 @@ function App() {
           duration: 3000,
           style: {
             background: '#ffffff',
-            color: '#000000',
-            borderRadius: '20px',
-            fontSize: '12px',
-            padding:'10px'
+            color: '#0165FF',
+            borderRadius: '15px',
+            fontSize: '14px',
+            padding:'10px',
+            fontWeight:'bold'
           },
           success: {
             duration: 3000,
