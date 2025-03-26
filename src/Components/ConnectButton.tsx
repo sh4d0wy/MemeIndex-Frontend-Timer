@@ -22,6 +22,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
     const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
     const [isRegistered, setIsRegistered] = useState(false);
+    const [walletAddress, setWalletAddress] = useState<string | undefined>();
 
     // Save wallet data to localStorage
     const saveWalletData = (data: WalletData) => {
@@ -104,6 +105,8 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                     isRegistered: true,
                     lastConnected: Date.now()
                 });
+                setIsConnected(true);
+                setWalletAddress(address);
                 return;
             }
 
@@ -130,6 +133,8 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                                 isRegistered: true,
                                 lastConnected: Date.now()
                             });
+                            setIsConnected(true);
+                            setWalletAddress(address);
                             return;
                         }
                     } catch (error) {
@@ -185,6 +190,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             if (isConnected) {
                 const address = await tonConnectUI.current?.account?.address;
                 if (address) {
+                    setWalletAddress(address);
                     // Get stored wallet data
                     const storedData = getWalletData();
                     
@@ -213,6 +219,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             if (wallet) {
                 const address = await tonConnectUI.current?.account?.address;
                 if (address) {
+                    setWalletAddress(address);
                     // Get stored wallet data
                     const storedData = getWalletData();
                     
@@ -236,6 +243,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             } else {
                 setIsConnected(false);
                 setIsRegistered(false);
+                setWalletAddress(undefined);
                 clearWalletData();
                 onAddressChange?.(undefined);
             }
@@ -252,15 +260,42 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         }
     }
 
+    const handleDisconnect = () => {
+        setIsConnected(false);
+        setIsRegistered(false);
+        setWalletAddress(undefined);
+        clearWalletData();
+        onAddressChange?.(undefined);
+    }
+
     return (
         <div className='w-full relative z-20'>
-            {!isConnected && (
+            {!isConnected ? (
                 <button 
                     onClick={openModal} 
                     className='w-full bg-gradient-to-b from-[#D97410] to-[#be6812] hover:bg-[#ffbf80] text-white py-4 rounded-xl text-lg font-bold transition-all duration-300'
                 >
                     {isRegistered ? 'Reconnect Wallet' : 'Connect Wallet'}
                 </button>
+            ) : (
+                <div className='flex flex-col gap-2'>
+                    <div className='bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center justify-between'>
+                        <div className='flex items-center gap-2'>
+                            <div className='w-2 h-2 rounded-full bg-green-500'></div>
+                            <span className='text-white font-medium'>
+                                {walletAddress ? `${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}` : ''}
+                            </span>
+                        </div>
+                        <button
+                            onClick={handleDisconnect}
+                            className='text-white hover:text-red-400 transition-colors duration-200'
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     )
