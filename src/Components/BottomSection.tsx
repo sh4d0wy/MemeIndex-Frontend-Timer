@@ -127,6 +127,18 @@ const BottomSection = () => {
   const [walletAddress, setWalletAddress] = useState<string | undefined>();
   const [referralCount, setReferralCount] = useState(0);
 
+  // Add function to fetch referral count
+  const fetchReferralCount = async (address: string) => {
+    try {
+      const response = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${address}`);
+      if (response.data?.referralCount !== undefined) {
+        setReferralCount(response.data.referralCount);
+      }
+    } catch (error) {
+      console.error('Error fetching referral count:', error);
+    }
+  };
+
   // Add useEffect to handle referral code on app launch
   useEffect(() => {
     const handleReferralCode = async () => {
@@ -156,18 +168,25 @@ const BottomSection = () => {
     setWalletAddress(address);
     if (address) {
       try {
+        // Fetch initial referral count
+        await fetchReferralCount(address);
+
         // Get the referral code from start_param
         const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
         if (startParam) {
           await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
             address,
-            referralCode  : startParam
+            referralCode: startParam
           });
+          // Refresh referral count after applying referral code
+          await fetchReferralCount(address);
           console.log('Referral code applied successfully!');
         }
       } catch (error) {
         console.error('Error applying referral code:', error);
       }
+    } else {
+      setReferralCount(0);
     }
   };
 
@@ -195,7 +214,7 @@ const BottomSection = () => {
         // Get referral link and stats with timeout
         const statsResponse = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`);
        
-        if(statsResponse.data.referralCount) {
+        if(statsResponse.data?.referralCount !== undefined) {
           setReferralCount(statsResponse.data.referralCount);
         }
 
@@ -204,7 +223,7 @@ const BottomSection = () => {
             // Validate bot token
             const botToken = import.meta.env.VITE_BOT_TOKEN;
             if (!botToken) {
-                window.Telegram?.WebApp?.showAlert('Bot token is not configured. Please contact support.');
+                console.log('Bot token is not configured. Please contact support.');
                 return;
             }
           const res = await axios.post(
@@ -242,15 +261,15 @@ const BottomSection = () => {
           if(res.data && res.data.result.id) {
             console.log('Referral link prepared successfully!');
             postEvent("web_app_send_prepared_message", { id: res.data.result.id });
+            // Refresh referral count after sending message
+            await fetchReferralCount(walletAddress);
           } else {
             console.log('Failed to prepare message. Please try again.');
           }
           }catch(error){
-            window.Telegram?.WebApp?.showAlert('Error saving inline message');
-            console.log(error);
+            console.log('Error saving inline message:', error);
           }
 
-      
       } catch (error: unknown) {
         console.error('Backend API Error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
