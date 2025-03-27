@@ -152,23 +152,35 @@ const BottomSection = () => {
 
         // Get the referral code from start_param
         const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
-        toast.success(`startParam: ${startParam}`);
         if (startParam) {
-          const res = await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
-            address,
-            referralCode: startParam
-          });
-          if(res.data.message === 'Referral code applied successfully'){
-            // Refresh referral count after applying referral code
-            await fetchReferralCount(address);
-            toast.success('Referral code applied successfully!');
-          }else{
+          try {
+            const res = await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
+              address,
+              referralCode: startParam
+            });
+            
+            // Check if the response indicates success
+            if (res.data && res.data.message === 'Referral code applied successfully') {
+              // Refresh referral count after applying referral code
+              await fetchReferralCount(address);
+              toast.success('Referral code applied successfully!');
+            } else {
+              // Only show error if the response doesn't indicate success
+              toast.error('Failed to apply referral code');
+            }
+          } catch (error) {
+            // Only show error if it's not a duplicate referral error
+            if (axios.isAxiosError(error) && error.response?.data?.message === 'Referral code already applied') {
+              console.log('Referral code already applied');
+              return;
+            }
+            console.error('Error applying referral code:', error);
             toast.error('Failed to apply referral code');
           }
         }
       } catch (error) {
-        console.error('Error applying referral code:', error);
-        toast.error('Failed to apply referral code');
+        console.error('Error in handleWalletAddressChange:', error);
+        toast.error('Failed to process wallet connection');
       }
     } else {
       setReferralCount(0);
