@@ -2,7 +2,7 @@ import ConnectButton from './ConnectButton'
 import { FaTelegram } from 'react-icons/fa'
 import { useState } from 'react'
 import axios from 'axios'
-import { postEvent, copyTextToClipboard } from '@telegram-apps/sdk'
+import { postEvent } from '@telegram-apps/sdk'
 import toast from 'react-hot-toast'
 declare global {
   interface Window {
@@ -307,7 +307,7 @@ const BottomSection = () => {
       });
       return;
     }
-  
+
     try {
       const response = await axios.get(`https://backend-4hpn.onrender.com/api/referral/link/${walletAddress}`);
       
@@ -324,23 +324,16 @@ const BottomSection = () => {
         `• Early voting privileges\n\n` +
         `Click here to join: ${botLink}`;
       
-      try {
-        // Use the Telegram SDK's copyTextToClipboard function
-        await copyTextToClipboard(messageText);
-        toast.success('Your invite link has been copied to clipboard!');
-      } catch (clipboardError) {
-        console.error('Error copying to clipboard:', clipboardError);
-        
-        // Fallback: If copying fails, show the message in a popup
-        if (window.Telegram?.WebApp) {
-          window.Telegram.WebApp.showPopup({
-            title: "Your Invite Link",
-            message: messageText,
-            buttons: [{ type: "ok", text: "Close" }]
-          });
-        } else {
-          toast.error('Failed to copy invite link. Please try again.');
-        }
+      // Check if we're in Telegram WebApp
+      if (window.Telegram?.WebApp) {
+        // For Telegram sharing, use the native dialog
+        window.Telegram.WebApp.showShareTgDialog({
+          message: messageText,
+          button_text: "Share"
+        });
+      } else {
+        // For other platforms or if sharing dialog isn't available
+        toast.error('Please open this app in Telegram to share your invite link');
       }
     } catch (error) {
       toast.error('Failed to get invite link. Please try again.');
