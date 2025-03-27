@@ -186,7 +186,7 @@ const BottomSection = () => {
             }
             // Only show error for actual errors
             console.error('Error applying referral code:', error);
-            toast.error('Failed to apply referral code');
+            toast.error(`${(error as any).response?.data?.message }`);
           }
         }
       } catch (error) {
