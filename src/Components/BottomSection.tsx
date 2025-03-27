@@ -2,7 +2,7 @@ import ConnectButton from './ConnectButton'
 import { FaTelegram } from 'react-icons/fa'
 import { useState } from 'react'
 import axios from 'axios'
-import { postEvent } from '@telegram-apps/sdk'
+import { copyTextToClipboard, postEvent } from '@telegram-apps/sdk'
 import toast from 'react-hot-toast'
 declare global {
   interface Window {
@@ -184,12 +184,6 @@ const BottomSection = () => {
                 return;
               }
             }
-            if((error as any).response?.data?.message =='Referral code already applied'){
-              return;
-            }else{
-              // toast.error('Failed to apply referral code');
-              console.error('Error applying referral code:', error);
-            }
           }
         }
       } catch (error) {
@@ -333,10 +327,8 @@ const BottomSection = () => {
       // Check if we're in Telegram WebApp
       if (window.Telegram?.WebApp) {
         // For Telegram users, use Telegram's share dialog
-        window.Telegram.WebApp.showShareTgDialog({
-          message: messageText,
-          button_text: "Share"
-        });
+        await copyTextToClipboard(messageText);
+        toast.success('Your invite link has been copied to clipboard!');
       } else {
         // For non-Telegram users (including iOS), show the message in a popup
         window.Telegram?.WebApp?.showPopup({
