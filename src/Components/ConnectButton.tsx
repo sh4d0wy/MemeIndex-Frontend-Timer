@@ -24,17 +24,23 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             const res = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${address}`);
             if (res.data?.isRegistered) {
                 setIsRegistered(true);
-                // setIsConnected(true);
+                setIsConnected(true);
                 setWalletAddress(address);
                 onAddressChange?.(address);
                 return true;
             }
             setIsRegistered(false);
+            setIsConnected(true); // Set connected even if not registered
+            setWalletAddress(address);
+            onAddressChange?.(address);
             return false;
         } catch (error) {
             console.error('Error checking registration:', error);
             toast.error('Failed to verify wallet registration');
             setIsRegistered(false);
+            setIsConnected(false);
+            setWalletAddress(undefined);
+            onAddressChange?.(undefined);
             return false;
         }
     }, [onAddressChange]);
@@ -171,14 +177,22 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 const isConnected = await tonConnectUI.current?.connected;
                 if (isConnected) {
                     const address = await tonConnectUI.current?.account?.address;
-                    setIsConnected(true);
                     if (address) {
                         await checkRegistration(address);
                     }
+                } else {
+                    setIsConnected(false);
+                    setIsRegistered(false);
+                    setWalletAddress(undefined);
+                    onAddressChange?.(undefined);
                 }
             } catch (error) {
                 console.error('Error checking connection:', error);
                 toast.error('Failed to check wallet connection');
+                setIsConnected(false);
+                setIsRegistered(false);
+                setWalletAddress(undefined);
+                onAddressChange?.(undefined);
             }
         };
         checkConnection();
@@ -186,7 +200,6 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         const unsubscribe = tonConnectUI.current.onStatusChange(async (wallet) => {
             try {
                 if (wallet) {
-                    setIsConnected(true);
                     const address = await tonConnectUI.current?.account?.address;
                     if (address) {
                         await checkRegistration(address);
@@ -201,6 +214,10 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             } catch (error) {
                 console.error('Error handling wallet status change:', error);
                 toast.error('Failed to handle wallet status change');
+                setIsConnected(false);
+                setIsRegistered(false);
+                setWalletAddress(undefined);
+                onAddressChange?.(undefined);
             }
         });
 
