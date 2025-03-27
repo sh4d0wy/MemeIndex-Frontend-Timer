@@ -216,7 +216,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                     onClick={openModal} 
                     className='w-full bg-gradient-to-b from-[#D97410] to-[#be6812] hover:bg-[#ffbf80] text-white py-4 rounded-xl text-lg font-bold transition-all duration-300'
                 >
-                    {isRegistered ? 'Reconnect Wallet' : 'Connect Wallet'}
+                    Connect Wallet
                 </button>
             </>
        ):(
