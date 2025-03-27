@@ -164,16 +164,23 @@ const BottomSection = () => {
               // Refresh referral count after applying referral code
               await fetchReferralCount(address);
               toast.success('Referral code applied successfully!');
-            } else {
-              // Only show error if the response doesn't indicate success
-              toast.error('Failed to apply referral code');
             }
           } catch (error) {
-            // Only show error if it's not a duplicate referral error
-            if (axios.isAxiosError(error) && error.response?.data?.message === 'Referral code already applied') {
-              console.log('Referral code already applied');
-              return;
+            // Handle different error cases
+            if (axios.isAxiosError(error)) {
+              const errorMessage = error.response?.data?.message;
+              if (errorMessage === 'Referral code already applied') {
+                // Don't show any message for already applied codes
+                return;
+              }
+              if (errorMessage === 'Referral code applied successfully') {
+                // If we get a success message in the error response, treat it as success
+                await fetchReferralCount(address);
+                toast.success('Referral code applied successfully!');
+                return;
+              }
             }
+            // Only show error for actual errors
             console.error('Error applying referral code:', error);
             toast.error('Failed to apply referral code');
           }
