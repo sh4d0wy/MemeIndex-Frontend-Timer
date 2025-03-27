@@ -24,7 +24,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             const res = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${address}`);
             if (res.data?.isRegistered) {
                 setIsRegistered(true);
-                setIsConnected(true);
+                // setIsConnected(true);
                 setWalletAddress(address);
                 onAddressChange?.(address);
                 return true;
@@ -167,6 +167,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 const isConnected = await tonConnectUI.current?.connected;
                 if (isConnected) {
                     const address = await tonConnectUI.current?.account?.address;
+                    setIsConnected(true);
                     if (address) {
                         await checkRegistration(address);
                     }
@@ -181,6 +182,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         const unsubscribe = tonConnectUI.current.onStatusChange(async (wallet) => {
             try {
                 if (wallet) {
+                    setIsConnected(true);
                     const address = await tonConnectUI.current?.account?.address;
                     if (address) {
                         await checkRegistration(address);
