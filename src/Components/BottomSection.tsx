@@ -158,12 +158,12 @@ const BottomSection = () => {
             address,
             referralCode: startParam
           });
-          if(res.data.status === 200){
+          if(res.data.message === 'Referral code applied successfully'){
             // Refresh referral count after applying referral code
             await fetchReferralCount(address);
             toast.success('Referral code applied successfully!');
           }else{
-            toast.error(res.data.message);
+            toast.error('Failed to apply referral code');
           }
         }
       } catch (error) {
