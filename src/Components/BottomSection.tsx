@@ -187,7 +187,8 @@ const BottomSection = () => {
             if((error as any).response?.data?.message =='Referral code already applied'){
               return;
             }else{
-              toast.error('Failed to apply referral code');
+              // toast.error('Failed to apply referral code');
+              console.error('Error applying referral code:', error);
             }
           }
         }
