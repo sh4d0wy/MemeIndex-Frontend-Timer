@@ -115,78 +115,78 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 return;
             }
 
-            try {                
-                let retryCount = 0;
-                let lastError = null;
+            // try {                
+            //     // let retryCount = 0;
+            //     // let lastError = null;
 
-                while (retryCount < maxRetries) {
-                    try {
-                        // First, check if the user is already registered
-                        const registrationCheck = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${address}`);
+            //     // while (retryCount < maxRetries) {
+            //     //     try {
+            //     //         // First, check if the user is already registered
+            //     //         const registrationCheck = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${address}`);
                         
-                        if (registrationCheck.data?.isRegistered) {
-                            setIsRegistered(true);
-                            setIsConnected(true);
-                            setWalletAddress(address);
-                            onAddressChange?.(address);
-                            toast.success('Wallet connected successfully!');
-                            return;
-                        }
+            //     //         if (registrationCheck.data?.isRegistered) {
+            //     //             setIsRegistered(true);
+            //     //             setIsConnected(true);
+            //     //             setWalletAddress(address);
+            //     //             onAddressChange?.(address);
+            //     //             toast.success('Wallet connected successfully!');
+            //     //             return;
+            //     //         }
 
-                        // If not registered, proceed with registration
-                        const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register', {
-                            address: address,
-                            username: username,
-                            prePreparedMessageId: "123456",
-                            referralCode: telegramId.toString(), // Ensure telegramId is a string
-                            referredBy: ''
-                        });
+            //     //         // If not registered, proceed with registration
+            //     //         const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register', {
+            //     //             address: address,
+            //     //             username: username,
+            //     //             prePreparedMessageId: "123456",
+            //     //             referralCode: telegramId.toString(), // Ensure telegramId is a string
+            //     //             referredBy: ''
+            //     //         });
 
-                        if(response.data) {
-                            console.log('Registered successfully!');
-                            setIsConnected(true);
-                            setIsRegistered(true);
-                            setWalletAddress(address);
-                            onAddressChange?.(address);
-                            toast.success('Wallet registered and connected successfully!');
-                            return;
-                        }
-                    } catch (error) {
-                        lastError = error;
-                        console.error(`Attempt ${retryCount + 1} failed:`, error);
+            //     //         if(response.data) {
+            //     //             console.log('Registered successfully!');
+            //     //             setIsConnected(true);
+            //     //             setIsRegistered(true);
+            //     //             setWalletAddress(address);
+            //     //             onAddressChange?.(address);
+            //     //             toast.success('Wallet registered and connected successfully!');
+            //     //             return;
+            //     //         }
+            //     //     } catch (error) {
+            //     //         lastError = error;
+            //     //         console.error(`Attempt ${retryCount + 1} failed:`, error);
                         
-                        if (error instanceof AxiosError) {
-                            const errorMessage = error.response?.data?.description || error.message;
-                            if (errorMessage.includes('webapp popup params invalid')) {
-                                toast.error('Invalid Telegram WebApp parameters. Please try again or contact support.');
-                                return;
-                            }
+            //     //         if (error instanceof AxiosError) {
+            //     //             const errorMessage = error.response?.data?.description || error.message;
+            //     //             if (errorMessage.includes('webapp popup params invalid')) {
+            //     //                 toast.error('Invalid Telegram WebApp parameters. Please try again or contact support.');
+            //     //                 return;
+            //     //             }
                             
-                            console.log(`Error: ${errorMessage}\nAttempt ${retryCount + 1}/${maxRetries}`);
+            //     //             console.log(`Error: ${errorMessage}\nAttempt ${retryCount + 1}/${maxRetries}`);
                             
-                            if (error.code === 'ECONNABORTED') {
-                                toast.error('Request timed out, retrying...');
-                            } else if (error.code === 'ERR_NETWORK') {
-                                toast.error('Network error, retrying...');
-                            } else {
-                                toast.error(errorMessage || 'Registration failed');
-                            }
-                        }
+            //     //             if (error.code === 'ECONNABORTED') {
+            //     //                 toast.error('Request timed out, retrying...');
+            //     //             } else if (error.code === 'ERR_NETWORK') {
+            //     //                 toast.error('Network error, retrying...');
+            //     //             } else {
+            //     //                 toast.error(errorMessage || 'Registration failed');
+            //     //             }
+            //     //         }
                         
-                        retryCount++;
-                        if (retryCount < maxRetries) {
-                            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
-                        }
-                    }
-                }
+            //     //         retryCount++;
+            //     //         if (retryCount < maxRetries) {
+            //     //             await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+            //     //         }
+            //     //     }
+            //     // }
 
-                throw lastError || new Error('All retry attempts failed');
+            //     // throw lastError || new Error('All retry attempts failed');
 
-            } catch (error: unknown) {
-                console.error('Telegram API Error:', error);
-                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                toast.error(`Failed to register wallet: ${errorMessage}`);
-            }
+            // } catch (error: unknown) {
+            //     console.error('Telegram API Error:', error);
+            //     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            //     toast.error(`Failed to register wallet: ${errorMessage}`);
+            // }
         } catch (error) {
             console.error('Unexpected Error:', error);
             toast.error('An unexpected error occurred while connecting wallet');
