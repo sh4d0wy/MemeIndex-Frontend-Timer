@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { TonConnectUI } from '@tonconnect/ui'
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 
 // Singleton instance
@@ -81,7 +81,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
     }, []);
 
     const handleConnect = useCallback(async () => {
-        const maxRetries = 3;
+        // const maxRetries = 3;
 
         try {
             const address = await tonConnectUI.current?.account?.address;
