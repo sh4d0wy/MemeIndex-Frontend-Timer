@@ -298,47 +298,23 @@ const BottomSection = () => {
       }
     }
   };
-
+  // Use the same formatted message as the bot
+  const messageText = 
+    `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
+    `Let's open it together!\n\n` +
+    `💰 Join now and receive:\n` +
+    `• 2 FREE votes for joining\n` +
+    `• Access to exclusive meme token listings\n` +
+    `• Early voting privileges\n\n` +
+    `Click here to join: https://t.me/MemeBattleArenaBot/MemeBattleArena?startapp=${window.Telegram?.WebApp?.initDataUnsafe?.user?.id}`;
+  
   const handleShareButton = async () => {
-    if (!walletAddress) {
-      toast('Please connect your wallet first to share your invite link', {
-        icon: 'ℹ️',
-        duration: 3000,
+      navigator.clipboard.writeText(messageText).then(() => {
+        toast.success('Your invite link has been copied to clipboard!');
+      }).catch((err) => {
+        toast.error('Failed to copy to clipboard. Please try again.');
+        console.error('Error copying to clipboard:', err);
       });
-      return;
-    }
-
-    try {
-      const response = await axios.get(`https://backend-4hpn.onrender.com/api/referral/link/${walletAddress}`);
-      
-      // Get the bot link that others will use to join
-      const botLink = response.data.referralLink;
-      
-      // Use the same formatted message as the bot
-      const messageText = 
-        `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
-        `Let's open it together!\n\n` +
-        `💰 Join now and receive:\n` +
-        `• 2 FREE votes for joining\n` +
-        `• Access to exclusive meme token listings\n` +
-        `• Early voting privileges\n\n` +
-        `Click here to join: ${botLink}`;
-      
-      // Check if we're in Telegram WebApp
-      if (window.Telegram?.WebApp) {
-        // For Telegram sharing, use the native dialog
-        window.Telegram.WebApp.showShareTgDialog({
-          message: messageText,
-          button_text: "Share"
-        });
-      } else {
-        // For other platforms or if sharing dialog isn't available
-        toast.error('Please open this app in Telegram to share your invite link');
-      }
-    } catch (error) {
-      toast.error('Failed to get invite link. Please try again.');
-      console.error('Error sharing:', error);
-    }
   };
   
   return (
