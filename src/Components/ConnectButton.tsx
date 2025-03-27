@@ -86,6 +86,10 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             const isAlreadyRegistered = await checkRegistration(address);
             if (isAlreadyRegistered) {
                 toast.success('Wallet connected successfully!');
+                setIsConnected(true);
+                setIsRegistered(true);
+                setWalletAddress(address);
+                onAddressChange?.(address);
                 return;
             }
 
@@ -238,6 +242,9 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
         <div className='w-full relative z-20'>
             {isConnected&&
                 <span className='text-white text-lg font-bold'>Connected</span>
+            }
+            {isRegistered&&
+                <span className='text-white text-lg font-bold'>Registered</span>
             }
                 <button 
                     onClick={openModal} 
