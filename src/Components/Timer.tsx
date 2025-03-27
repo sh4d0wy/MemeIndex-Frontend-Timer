@@ -47,7 +47,7 @@ const Timer = () => {
   }, []);
 
   return (
-    <div className="flex gap-1 px-3 w-full justify-center items-center relative z-20">
+    <div className="flex gap-2 px-3 w-full justify-center items-center relative z-20">
       <TimeBox value={timeLeft.days} label="Days" />
       <TimeBox value={timeLeft.hours} label="Hours" />
       <TimeBox value={timeLeft.minutes} label="Min" />
@@ -64,7 +64,7 @@ interface TimeBoxProps {
 const TimeBox = ({ value, label }: TimeBoxProps) => {
   return (
     <div className="flex flex-col items-center drop-shadow-xl mt-[10px]">
-      <div className="w-20 h-20 bg-[#002dfe] rounded-lg flex items-center justify-center 
+      <div className="w-17 h-17 bg-[#002dfe] rounded-lg flex items-center justify-center 
                     shadow-[0_0_15px_rgba(0,82,255,0.5)] border border-[#0066FF]/30">
         <span className="text-3xl font-[750] text-white flex flex-col  items-center justify-center">
           {value.toString().padStart(2, '0')}
