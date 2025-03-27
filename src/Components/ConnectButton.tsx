@@ -27,7 +27,6 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 setIsConnected(true);
                 setWalletAddress(address);
                 onAddressChange?.(address);
-                toast.success("User is registered")
                 return true;
             }
             setIsRegistered(false);
@@ -49,10 +48,8 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 setIsRegistered(true);
                 setWalletAddress(address);
                 onAddressChange?.(address);
-                toast.success('Wallet registered and connected successfully!');
                 return;
             }
-            toast.success("User is not registered")
             return false;
         } catch (error) {
             console.error('Error checking registration:', error);
@@ -111,87 +108,14 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             // Check if already registered first
             const isAlreadyRegistered = await checkRegistration(address);
             if (isAlreadyRegistered) {
-                toast.success('Wallet connected successfully!');
                 return;
             }
 
-            // try {                
-            //     // let retryCount = 0;
-            //     // let lastError = null;
-
-            //     // while (retryCount < maxRetries) {
-            //     //     try {
-            //     //         // First, check if the user is already registered
-            //     //         const registrationCheck = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${address}`);
-                        
-            //     //         if (registrationCheck.data?.isRegistered) {
-            //     //             setIsRegistered(true);
-            //     //             setIsConnected(true);
-            //     //             setWalletAddress(address);
-            //     //             onAddressChange?.(address);
-            //     //             toast.success('Wallet connected successfully!');
-            //     //             return;
-            //     //         }
-
-            //     //         // If not registered, proceed with registration
-            //     //         const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register', {
-            //     //             address: address,
-            //     //             username: username,
-            //     //             prePreparedMessageId: "123456",
-            //     //             referralCode: telegramId.toString(), // Ensure telegramId is a string
-            //     //             referredBy: ''
-            //     //         });
-
-            //     //         if(response.data) {
-            //     //             console.log('Registered successfully!');
-            //     //             setIsConnected(true);
-            //     //             setIsRegistered(true);
-            //     //             setWalletAddress(address);
-            //     //             onAddressChange?.(address);
-            //     //             toast.success('Wallet registered and connected successfully!');
-            //     //             return;
-            //     //         }
-            //     //     } catch (error) {
-            //     //         lastError = error;
-            //     //         console.error(`Attempt ${retryCount + 1} failed:`, error);
-                        
-            //     //         if (error instanceof AxiosError) {
-            //     //             const errorMessage = error.response?.data?.description || error.message;
-            //     //             if (errorMessage.includes('webapp popup params invalid')) {
-            //     //                 toast.error('Invalid Telegram WebApp parameters. Please try again or contact support.');
-            //     //                 return;
-            //     //             }
-                            
-            //     //             console.log(`Error: ${errorMessage}\nAttempt ${retryCount + 1}/${maxRetries}`);
-                            
-            //     //             if (error.code === 'ECONNABORTED') {
-            //     //                 toast.error('Request timed out, retrying...');
-            //     //             } else if (error.code === 'ERR_NETWORK') {
-            //     //                 toast.error('Network error, retrying...');
-            //     //             } else {
-            //     //                 toast.error(errorMessage || 'Registration failed');
-            //     //             }
-            //     //         }
-                        
-            //     //         retryCount++;
-            //     //         if (retryCount < maxRetries) {
-            //     //             await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
-            //     //         }
-            //     //     }
-            //     // }
-
-            //     // throw lastError || new Error('All retry attempts failed');
-
-            // } catch (error: unknown) {
-            //     console.error('Telegram API Error:', error);
-            //     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            //     toast.error(`Failed to register wallet: ${errorMessage}`);
-            // }
         } catch (error) {
             console.error('Unexpected Error:', error);
             toast.error('An unexpected error occurred while connecting wallet');
         }
-    }, [username, onAddressChange, checkRegistration]);
+    }, [username, checkRegistration]);
 
     useEffect(() => {
         if (!tonConnectUIInstance) {
@@ -286,19 +210,17 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
 
     return (
         <div className='w-full relative z-20'>
-            {isConnected&&
-                <span className='text-white text-lg font-bold'>Connected</span>
-            }
-            {isRegistered&&
-                <span className='text-white text-lg font-bold'>Registered</span>
-            }
+          {(isConnected && isRegistered)?(
+            <>
                 <button 
                     onClick={openModal} 
                     className='w-full bg-gradient-to-b from-[#D97410] to-[#be6812] hover:bg-[#ffbf80] text-white py-4 rounded-xl text-lg font-bold transition-all duration-300'
                 >
                     {isRegistered ? 'Reconnect Wallet' : 'Connect Wallet'}
                 </button>
-       
+            </>
+       ):(
+        <>
                 <div className='flex flex-col gap-2'>
                     <div className='bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center justify-between'>
                         <div className='flex items-center gap-2'>
@@ -311,17 +233,14 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                             onClick={handleDisconnect}
                             className='text-white hover:text-red-400 transition-colors duration-200'
                         >
-                            {isConnected?
-                                <span className='text-white text-lg font-bold'>Connected</span>:
-                                <span className='text-white text-lg font-bold'>Disconnect</span>
-                            }
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
                         </button>
                     </div>
                 </div>
-         
+                </>
+          )}
         </div>
     )
 }
