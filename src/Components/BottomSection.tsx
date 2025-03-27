@@ -184,9 +184,11 @@ const BottomSection = () => {
                 return;
               }
             }
-            // Only show error for actual errors
-            console.error('Error applying referral code:', error);
-            toast.error(`${(error as any).response?.data?.message }`);
+            if((error as any).response?.data?.message =='Referral code already applied'){
+              return;
+            }else{
+              toast.error('Failed to apply referral code');
+            }
           }
         }
       } catch (error) {
