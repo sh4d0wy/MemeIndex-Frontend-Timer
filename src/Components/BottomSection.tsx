@@ -129,6 +129,7 @@ const BottomSection = () => {
   
   const [walletAddress, setWalletAddress] = useState<string | undefined>();
   const [referralCount, setReferralCount] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Add function to fetch referral count
   const fetchReferralCount = async (address: string) => {
@@ -144,8 +145,11 @@ const BottomSection = () => {
 
   // Update the wallet address handler
   const handleWalletAddressChange = async (address: string | undefined) => {
+    if (isProcessing) return; // Prevent multiple simultaneous calls
+    
     setWalletAddress(address);
     if (address) {
+      setIsProcessing(true);
       try {
         // Fetch initial referral count
         await fetchReferralCount(address);
@@ -188,6 +192,8 @@ const BottomSection = () => {
       } catch (error) {
         console.error('Error in handleWalletAddressChange:', error);
         toast.error('Failed to process wallet connection');
+      } finally {
+        setIsProcessing(false);
       }
     } else {
       setReferralCount(0);
