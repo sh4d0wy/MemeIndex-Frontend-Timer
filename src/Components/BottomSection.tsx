@@ -2,7 +2,7 @@ import ConnectButton from './ConnectButton'
 import { FaTelegram } from 'react-icons/fa'
 import { useState } from 'react'
 import axios from 'axios'
-import { postEvent } from '@telegram-apps/sdk'
+import { postEvent, copyTextToClipboard } from '@telegram-apps/sdk'
 import toast from 'react-hot-toast'
 declare global {
   interface Window {
@@ -324,15 +324,23 @@ const BottomSection = () => {
         `• Early voting privileges\n\n` +
         `Click here to join: ${botLink}`;
       
-      // Check if we're in Telegram WebApp
-      if (window.Telegram?.WebApp) {
-        // For Telegram users, use Telegram's share dialog
-        navigator.clipboard.writeText(messageText).then(() => {
-          toast.success('Your invite link has been copied to clipboard!');
-        }).catch((err) => {
-          toast.error('Failed to copy to clipboard. Please try again.');
-          console.error('Error copying to clipboard:', err);
-        });
+      try {
+        // Use the Telegram SDK's copyTextToClipboard function
+        await copyTextToClipboard(messageText);
+        toast.success('Your invite link has been copied to clipboard!');
+      } catch (clipboardError) {
+        console.error('Error copying to clipboard:', clipboardError);
+        
+        // Fallback: If copying fails, show the message in a popup
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.showPopup({
+            title: "Your Invite Link",
+            message: messageText,
+            buttons: [{ type: "ok", text: "Close" }]
+          });
+        } else {
+          toast.error('Failed to copy invite link. Please try again.');
+        }
       }
     } catch (error) {
       toast.error('Failed to get invite link. Please try again.');
