@@ -234,7 +234,9 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
 
     return (
         <div className='w-full relative z-20'>
-            
+            {isConnected&&
+                <span className='text-white text-lg font-bold'>Connected</span>
+            }
                 <button 
                     onClick={openModal} 
                     className='w-full bg-gradient-to-b from-[#D97410] to-[#be6812] hover:bg-[#ffbf80] text-white py-4 rounded-xl text-lg font-bold transition-all duration-300'
