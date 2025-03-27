@@ -210,7 +210,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
 
     return (
         <div className='w-full relative z-20'>
-          {(isConnected && isRegistered)?(
+          {(!isConnected && !isRegistered)?(
             <>
                 <button 
                     onClick={openModal} 
