@@ -234,14 +234,14 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
 
     return (
         <div className='w-full relative z-20'>
-            {!isConnected ? (
+            
                 <button 
                     onClick={openModal} 
                     className='w-full bg-gradient-to-b from-[#D97410] to-[#be6812] hover:bg-[#ffbf80] text-white py-4 rounded-xl text-lg font-bold transition-all duration-300'
                 >
                     {isRegistered ? 'Reconnect Wallet' : 'Connect Wallet'}
                 </button>
-            ) : (
+       
                 <div className='flex flex-col gap-2'>
                     <div className='bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center justify-between'>
                         <div className='flex items-center gap-2'>
@@ -260,7 +260,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                         </button>
                     </div>
                 </div>
-            )}
+         
         </div>
     )
 }
