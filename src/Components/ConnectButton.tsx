@@ -27,12 +27,32 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
                 setIsConnected(true);
                 setWalletAddress(address);
                 onAddressChange?.(address);
+                toast.success("User is registered")
                 return true;
             }
             setIsRegistered(false);
             setIsConnected(true); // Set connected even if not registered
             setWalletAddress(address);
             onAddressChange?.(address);
+
+            const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register', {
+                address: address,
+                username: username,
+                prePreparedMessageId: "123456",
+                referralCode: window.Telegram?.WebApp?.initDataUnsafe?.user?.id, // Ensure telegramId is a string
+                referredBy: ''
+            });
+
+            if(response.data) {
+                console.log('Registered successfully!');
+                setIsConnected(true);
+                setIsRegistered(true);
+                setWalletAddress(address);
+                onAddressChange?.(address);
+                toast.success('Wallet registered and connected successfully!');
+                return;
+            }
+            toast.success("User is not registered")
             return false;
         } catch (error) {
             console.error('Error checking registration:', error);
@@ -43,7 +63,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             onAddressChange?.(undefined);
             return false;
         }
-    }, [onAddressChange]);
+    }, [onAddressChange,username]);
 
     // Handle Telegram user info
     useEffect(() => {
@@ -183,7 +203,6 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
 
         const checkConnection = async () => {
             try {
-                const isConnected = await tonConnectUI.current?.connected;
                 if (isConnected) {
                     const address = await tonConnectUI.current?.account?.address;
                     if (address) {
@@ -210,6 +229,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             try {
                 if (wallet) {
                     const address = await tonConnectUI.current?.account?.address;
+                    toast.success("Wallet connected successfully!");
                     if (address) {
                         await checkRegistration(address);
                     }
