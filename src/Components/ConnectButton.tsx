@@ -222,14 +222,13 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
        ):(
         <>
                 <div className='flex flex-col gap-2 hover:text-red-400 cursor-pointer'>
-                    <div className='bg-white rounded-xl p-4 flex items-center justify-between text-blue-400 hover:bg-blue-50 active:scale-95 cursor-pointer'>
-                        <div className='flex items-center gap-2 '>
-                            <span className='font-lg font-bold'>
+                    <div className='bg-white rounded-xl p-4 flex items-center justify-between text-blue-400 hover:bg-blue-50 active:scale-95 cursor-pointer transition-all duration-300' onClick={handleDisconnect}>
+                        <div className='flex items-center gap-2 transition-all duration-300'>
+                            <span className='font-lg font-bold  '>
                                 {walletAddress ? `${walletAddress.substring(0, 6)}.....${walletAddress.substring(walletAddress.length - 10)}` : ''}
                             </span>
                         </div>
                         <button
-                            onClick={handleDisconnect}
                             className=' transition-colors duration-200'
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
