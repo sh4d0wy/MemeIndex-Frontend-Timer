@@ -222,7 +222,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
        ):(
         <>
                 <div className='flex flex-col gap-2 hover:text-red-400 cursor-pointer'>
-                    <div className='bg-white rounded-xl p-4 flex items-center justify-between hover:text-red-400 cursor-pointer hover:bg-white/70 text-blue-400 '>
+                    <div className='bg-white rounded-xl p-4 flex items-center justify-between text-blue-400 hover:bg-blue-50 active:scale-95 cursor-pointer'>
                         <div className='flex items-center gap-2 '>
                             <span className='font-lg font-bold'>
                                 {walletAddress ? `${walletAddress.substring(0, 6)}.....${walletAddress.substring(walletAddress.length - 10)}` : ''}
