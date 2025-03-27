@@ -318,7 +318,7 @@ const BottomSection = () => {
   };
   
   return (
-    <div className='flex flex-col gap-2 absolute bottom-2 left-0 right-0 px-4 py-2z-20 w-full'>
+    <div className='flex flex-col gap-2 absolute bottom-3 left-0 right-0 px-4 py-2 z-20 w-full'>
       {/* <TonConnectButton className='w-[80vh]' style={{width: '100%'}}/> */}
       <div className='text-white text-lg text-center flex items-center justify-center gap-2'>
           <span>About MIDAO:</span>
