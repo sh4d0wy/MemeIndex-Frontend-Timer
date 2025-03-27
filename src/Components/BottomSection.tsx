@@ -330,12 +330,25 @@ const BottomSection = () => {
         `• Early voting privileges\n\n` +
         `Click here to join: ${botLink}`;
       
-      if (window.Telegram?.WebApp) {
+      try {
+        // Try to use the clipboard API
         await navigator.clipboard.writeText(messageText);
         toast.success('Your invite link has been copied to clipboard!');
+      } catch (clipboardError) {
+        // If clipboard API fails, try to use Telegram's share dialog
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.showShareTgDialog({
+            message: messageText,
+            button_text: "Share"
+          });
+        } else {
+          // If both fail, show error
+          toast.error('Failed to copy invite link. Please try again.');
+          console.error('Error copying to clipboard:', clipboardError);
+        }
       }
     } catch (error) {
-      toast.error('Failed to copy invite link. Please try again.');
+      toast.error('Failed to get invite link. Please try again.');
       console.error('Error sharing:', error);
     }
   };
