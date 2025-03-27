@@ -92,10 +92,6 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             const isAlreadyRegistered = await checkRegistration(address);
             if (isAlreadyRegistered) {
                 toast.success('Wallet connected successfully!');
-                setIsConnected(true);
-                setIsRegistered(true);
-                setWalletAddress(address);
-                onAddressChange?.(address);
                 return;
             }
 
@@ -105,11 +101,24 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
 
                 while (retryCount < maxRetries) {
                     try {
+                        // First, check if the user is already registered
+                        const registrationCheck = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${address}`);
+                        
+                        if (registrationCheck.data?.isRegistered) {
+                            setIsRegistered(true);
+                            setIsConnected(true);
+                            setWalletAddress(address);
+                            onAddressChange?.(address);
+                            toast.success('Wallet connected successfully!');
+                            return;
+                        }
+
+                        // If not registered, proceed with registration
                         const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register', {
                             address: address,
                             username: username,
                             prePreparedMessageId: "123456",
-                            referralCode: telegramId,
+                            referralCode: telegramId.toString(), // Ensure telegramId is a string
                             referredBy: ''
                         });
 
