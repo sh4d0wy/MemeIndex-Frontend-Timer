@@ -2,7 +2,7 @@ import ConnectButton from './ConnectButton'
 import { FaTelegram } from 'react-icons/fa'
 import { useState } from 'react'
 import axios from 'axios'
-import { copyTextToClipboard, postEvent } from '@telegram-apps/sdk'
+import { postEvent } from '@telegram-apps/sdk'
 import toast from 'react-hot-toast'
 declare global {
   interface Window {
@@ -327,19 +327,11 @@ const BottomSection = () => {
       // Check if we're in Telegram WebApp
       if (window.Telegram?.WebApp) {
         // For Telegram users, use Telegram's share dialog
-        await copyTextToClipboard(messageText);
-        toast.success('Your invite link has been copied to clipboard!');
-      } else {
-        // For non-Telegram users (including iOS), show the message in a popup
-        window.Telegram?.WebApp?.showPopup({
-          title: "Your Invite Link",
-          message: messageText,
-          buttons: [
-            {
-              type: "ok",
-              text: "Close"
-            }
-          ]
+        navigator.clipboard.writeText(messageText).then(() => {
+          toast.success('Your invite link has been copied to clipboard!');
+        }).catch((err) => {
+          toast.error('Failed to copy to clipboard. Please try again.');
+          console.error('Error copying to clipboard:', err);
         });
       }
     } catch (error) {
@@ -347,7 +339,7 @@ const BottomSection = () => {
       console.error('Error sharing:', error);
     }
   };
-
+  
   return (
     <div className='flex flex-col gap-4 absolute bottom-4 left-0 right-0 p-4 z-20 w-full'>
       {/* <TonConnectButton className='w-[80vh]' style={{width: '100%'}}/> */}
