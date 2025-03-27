@@ -142,22 +142,6 @@ const BottomSection = () => {
     }
   };
 
-  // // Add useEffect to handle referral code on app launch
-  // useEffect(() => {
-  //   const handleReferralCode = async () => {
-  //     try {
-  //       // Get the referral code from Telegram's start_param
-  //       // const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
-       
-  //     } catch (error) {
-  //       console.error('Error handling referral code:', error);
-  //       window.Telegram?.WebApp?.showAlert('Error handling referral code');
-  //     }
-  //   };
-
-  //   handleReferralCode();
-  // }, []);
-
   // Update the wallet address handler
   const handleWalletAddressChange = async (address: string | undefined) => {
     setWalletAddress(address);
@@ -169,13 +153,17 @@ const BottomSection = () => {
         // Get the referral code from start_param
         const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
         if (startParam) {
-          await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
+          const res = await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
             address,
             referralCode: startParam
           });
-          // Refresh referral count after applying referral code
-          await fetchReferralCount(address);
-          toast.success('Referral code applied successfully!');
+          if(res.data.status === 200){
+            // Refresh referral count after applying referral code
+            await fetchReferralCount(address);
+            toast.success('Referral code applied successfully!');
+          }else{
+            toast.error(res.data.message);
+          }
         }
       } catch (error) {
         console.error('Error applying referral code:', error);
