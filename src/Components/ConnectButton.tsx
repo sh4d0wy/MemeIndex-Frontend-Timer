@@ -214,7 +214,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             <>
                 <button 
                     onClick={openModal} 
-                    className='w-full bg-gradient-to-b from-[#D97410] to-[#be6812] hover:bg-[#ffbf80] text-white py-4 rounded-xl text-lg font-bold transition-all duration-300 cursor-pointer'
+                    className='w-full bg-gradient-to-b from-[#D97410] to-[#be6812] hover:bg-[#ffbf80] text-white py-3 rounded-xl text-lg font-bold transition-all duration-300 cursor-pointer'
                 >
                     Connect Wallet
                 </button>
@@ -222,7 +222,7 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
        ):(
         <>
                 <div className='flex flex-col gap-2 hover:text-red-400 cursor-pointer'>
-                    <div className='bg-white rounded-xl p-4 flex items-center justify-between text-blue-400 hover:bg-blue-50 active:scale-95 cursor-pointer transition-all duration-300 text-xl font-bold' onClick={handleDisconnect}>
+                    <div className='bg-white rounded-xl py-3 px-4 flex items-center justify-between text-blue-400 hover:bg-blue-50 active:scale-95 cursor-pointer transition-all duration-300 text-xl font-bold' onClick={handleDisconnect}>
                         <div className='flex items-center gap-2 transition-all duration-300'>
                             <span className='font-lg font-bold  '>
                                 {walletAddress ? `${walletAddress.substring(0, 6)}.....${walletAddress.substring(walletAddress.length - 10)}` : ''}

@@ -329,7 +329,7 @@ const BottomSection = () => {
       <div className='flex gap-2'>
         <button 
           onClick={handleGetReferralLink}
-          className={`w-full py-4 rounded-xl font-bold text-xl flex items-center justify-center gap-2 transition-all duration-300 ${
+          className={`w-full py-3 rounded-xl font-bold text-xl flex items-center justify-center gap-2 transition-all duration-300 ${
             walletAddress 
               ? 'bg-white text-blue-400 hover:bg-blue-50 active:scale-95 cursor-pointer' 
               : 'bg-white/70 text-blue-400/60 cursor-not-allowed'
@@ -345,7 +345,7 @@ const BottomSection = () => {
         <button 
           onClick={handleShareButton}
           disabled={!walletAddress}
-          className={`text-blue-400 w-1/5 py-4 rounded-xl text-xl flex items-center justify-center gap-2 transition-all duration-300 ${
+          className={`text-blue-400 w-1/5 py-3 rounded-xl text-xl flex items-center justify-center gap-2 transition-all duration-300 ${
             walletAddress 
               ? 'bg-white hover:bg-blue-50 active:scale-95 cursor-pointer' 
               : 'bg-white/70 text-blue-400/80 cursor-not-allowed'
