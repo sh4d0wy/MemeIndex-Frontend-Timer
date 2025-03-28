@@ -47,7 +47,7 @@ const Timer = () => {
   }, []);
 
   return (
-    <div className="flex gap-2 px-2 w-full justify-center items-center relative z-20 ">
+    <div className="flex gap-2 px-2 w-[100vw] justify-center items-center relative z-20 ">
       <TimeBox value={timeLeft.days} label="Days" />
       <TimeBox value={timeLeft.hours} label="Hours" />
       <TimeBox value={timeLeft.minutes} label="Min" />
