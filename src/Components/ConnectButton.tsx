@@ -199,10 +199,6 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
             if (tonConnectUI.current) {
                 await tonConnectUI.current.disconnect();
             }
-            setIsConnected(false);
-            setIsRegistered(false);
-            setWalletAddress(undefined);
-            onAddressChange?.(undefined);
         } catch (error) {
             console.error('Error disconnecting wallet:', error);
             toast.error('Failed to disconnect wallet');
