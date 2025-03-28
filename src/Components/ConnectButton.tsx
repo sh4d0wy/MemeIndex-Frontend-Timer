@@ -7,13 +7,15 @@ import toast from 'react-hot-toast';
 let tonConnectUIInstance: TonConnectUI | null = null;
 
 interface ConnectButtonProps {
+    isConnected: boolean;
+    setIsConnected: (isConnected: boolean) => void;
     onAddressChange?: (address: string | undefined, options?: { messageId?: string }) => void;
     pendingMessageId?: string | null;
 }
 
-const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
+const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: ConnectButtonProps) => {
     const tonConnectUI = useRef<TonConnectUI | null>(null);
-    const [isConnected, setIsConnected] = useState(false);
+    // const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
     const [isRegistered, setIsRegistered] = useState(false);
     const [walletAddress, setWalletAddress] = useState<string | undefined>();
@@ -201,7 +203,6 @@ const ConnectButton = ({ onAddressChange }: ConnectButtonProps) => {
             setIsRegistered(false);
             setWalletAddress(undefined);
             onAddressChange?.(undefined);
-            toast.success('Wallet disconnected successfully');
         } catch (error) {
             console.error('Error disconnecting wallet:', error);
             toast.error('Failed to disconnect wallet');

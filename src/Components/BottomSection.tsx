@@ -130,6 +130,7 @@ const BottomSection = () => {
   const [walletAddress, setWalletAddress] = useState<string | undefined>();
   const [referralCount, setReferralCount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const[isConnected, setIsConnected] = useState(false);
 
   // Add function to fetch referral count
   const fetchReferralCount = async (address: string) => {
@@ -320,16 +321,16 @@ const BottomSection = () => {
           <FaTelegram className='text-3xl'/> 
           <a href="https://t.me/memeindexdao" target='_blank' rel='noreferrer'><span>@MemeIndexDAO</span></a>
       </div>
-      <ConnectButton onAddressChange={handleWalletAddressChange}/>
+      <ConnectButton isConnected={isConnected} setIsConnected={setIsConnected} onAddressChange={handleWalletAddressChange}/>
       <div className='flex gap-2'>
         <button 
           onClick={handleGetReferralLink}
           className={`w-full py-3 rounded-xl font-bold text-xl flex items-center justify-center gap-2 transition-all duration-300 ${
-            walletAddress 
+            isConnected
               ? 'bg-white text-blue-400 hover:bg-blue-50 active:scale-95 cursor-pointer' 
               : 'bg-white/70 text-blue-400/60 cursor-not-allowed'
           }`}
-          disabled={!walletAddress}
+          disabled={!isConnected}
         >
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M19 10V4M16 7H22M16 21V19.8C16 18.1198 16 17.2798 15.673 16.638C15.3854 16.0735 14.9265 15.6146 14.362 15.327C13.7202 15 12.8802 15 11.2 15H6.8C5.11984 15 4.27976 15 3.63803 15.327C3.07354 15.6146 2.6146 16.0735 2.32698 16.638C2 17.2798 2 18.1198 2 19.8V21M12.5 7.5C12.5 9.433 10.933 11 9 11C7.067 11 5.5 9.433 5.5 7.5C5.5 5.567 7.067 4 9 4C10.933 4 12.5 5.567 12.5 7.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
