@@ -159,13 +159,7 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
                     if (address) {
                         await checkRegistration(address);
                     }
-                } else {
-                    setIsConnected(false);
-                    setIsRegistered(false);
-                    setWalletAddress(undefined);
-                    onAddressChange?.(undefined);
-                    toast.success('Wallet disconnected successfully');
-                }
+                } 
             } catch (error) {
                 console.error('Error handling wallet status change:', error);
                 toast.error('Failed to handle wallet status change');
@@ -199,6 +193,11 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
             if (tonConnectUI.current) {
                 await tonConnectUI.current.disconnect();
             }
+            setIsConnected(false);
+            setIsRegistered(false);
+            setWalletAddress(undefined);
+            onAddressChange?.(undefined);
+            toast.success('Wallet disconnected successfully');
         } catch (error) {
             console.error('Error disconnecting wallet:', error);
             toast.error('Failed to disconnect wallet');
