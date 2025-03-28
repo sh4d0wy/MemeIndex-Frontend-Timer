@@ -122,7 +122,7 @@ declare global {
 
 const BottomSection = () => {
   postEvent("web_app_set_header_color", {
-    color: "#0768F9"
+    color: "#006FFA"
   })
 
   // alert(window.Telegram?.WebApp?.initDataUnsafe?.user?.id);
