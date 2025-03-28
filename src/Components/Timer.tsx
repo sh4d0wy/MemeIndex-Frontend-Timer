@@ -64,7 +64,7 @@ interface TimeBoxProps {
 const TimeBox = ({ value, label }: TimeBoxProps) => {
   return (
     <div className="flex flex-col items-center  w-full">
-      <div className="w-1/4 h-18 bg-[#002dfe] rounded-lg flex items-center justify-center 
+      <div className="w-full flex-1/4 h-18 bg-[#002dfe] rounded-lg flex items-center justify-center 
                     shadow-[0_0_15px_rgba(0,82,255,0.5)] border border-[#0066FF]/30">
         <span className="text-3xl font-[800] text-white flex flex-col  items-center justify-center">
           {value.toString().padStart(2, '0')}
