@@ -18,7 +18,7 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
     // const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
     const [isRegistered, setIsRegistered] = useState(false);
-    const [walletAddress, setWalletAddress] = useState<string | undefined>();
+    const [walletAddress, setWalletAddress] = useState<string | undefined>()
 
     // Check registration status
     const checkRegistration = useCallback(async (address: string) => {
