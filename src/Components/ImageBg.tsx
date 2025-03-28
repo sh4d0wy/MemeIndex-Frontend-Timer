@@ -2,7 +2,7 @@ const ImageBg = () => {
   return (
     <div className='w-full h-full absolute z-0'>
         <img 
-            src="/image.png"
+            src="/image-min.webp"
             alt="Background pattern"
             className='w-full h-full object-cover'
             loading="lazy"
