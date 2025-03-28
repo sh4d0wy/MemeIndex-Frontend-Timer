@@ -243,9 +243,9 @@ const BottomSection = () => {
               result: {
                 type: "article",
                 id: uniqueId,
-                title: "Hidden door to the MemeIndex Treasury found...",
+                title: "Meme legends are rising!",
                 input_message_content: {
-                  message_text: "Hidden door to the MemeIndex Treasury found... Let's open it together!"
+                  message_text: "Meme legends are rising!\nI’ve entered the Meme Battle Arena—join me and let’s push our memes to the top!"
                 },
                 reply_markup: {
                   inline_keyboard: [
@@ -300,12 +300,7 @@ const BottomSection = () => {
   };
   // Use the same formatted message as the bot
   const messageText = 
-    `🌟 Hidden door to the MemeIndex Treasury found...\n\n` +
-    `Let's open it together!\n\n` +
-    `💰 Join now and receive:\n` +
-    `• 2 FREE votes for joining\n` +
-    `• Access to exclusive meme token listings\n` +
-    `• Early voting privileges\n\n` +
+    `Meme legends are rising!\nI’ve entered the Meme Battle Arena—join me and let’s push our memes to the top!\n\n` +
     `Click here to join: https://t.me/MemeBattleArenaBot/MemeBattleArena?startapp=${window.Telegram?.WebApp?.initDataUnsafe?.user?.id}`;
   
   const handleShareButton = async () => {
