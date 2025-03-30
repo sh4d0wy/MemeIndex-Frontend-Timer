@@ -9,21 +9,26 @@ let tonConnectUIInstance: TonConnectUI | null = null;
 interface ConnectButtonProps {
     isConnected: boolean;
     setIsConnected: (isConnected: boolean) => void;
-    onAddressChange?: (address: string | undefined, options?: { messageId?: string }) => void;
-    pendingMessageId?: string | null;
+    onAddressChange?: (address: string | undefined) => void;   
 }
 
 const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: ConnectButtonProps) => {
     const tonConnectUI = useRef<TonConnectUI | null>(null);
-    // const [isConnected, setIsConnected] = useState(false);
     const [username, setUsername] = useState('');
     const [isRegistered, setIsRegistered] = useState(false);
-    const [walletAddress, setWalletAddress] = useState<string | undefined>()
+    const [walletAddress, setWalletAddress] = useState<string | undefined>();
 
-    // Check registration status
+    // Check registration status using telegramId
     const checkRegistration = useCallback(async (address: string) => {
+        const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+        if (!telegramId) {
+            toast.error('Please open this app in Telegram');
+            return false;
+        }
+
         try {
-            const res = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${address}`);
+            // Check registration by telegramId
+            const res = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${telegramId}`);
             if (res.data?.isRegistered) {
                 setIsRegistered(true);
                 setIsConnected(true);
@@ -31,17 +36,16 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
                 onAddressChange?.(address);
                 return true;
             }
+
+            // If not registered, register with telegramId
             setIsRegistered(false);
-            setIsConnected(true); // Set connected even if not registered
+            setIsConnected(true);
             setWalletAddress(address);
             onAddressChange?.(address);
 
             const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register', {
-                address: address,
-                username: username,
-                prePreparedMessageId: "123456",
-                referralCode: window.Telegram?.WebApp?.initDataUnsafe?.user?.id, // Ensure telegramId is a string
-                referredBy: ''
+                telegramId: telegramId,
+                username: username
             });
 
             if(response.data) {
@@ -50,19 +54,19 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
                 setIsRegistered(true);
                 setWalletAddress(address);
                 onAddressChange?.(address);
-                return;
+                return true;
             }
             return false;
         } catch (error) {
             console.error('Error checking registration:', error);
-            toast.error('Failed to verify wallet registration');
+            toast.error('Failed to verify registration');
             setIsRegistered(false);
             setIsConnected(false);
             setWalletAddress(undefined);
             onAddressChange?.(undefined);
             return false;
         }
-    }, [onAddressChange,username]);
+    }, [onAddressChange, username, setIsConnected]);
 
     // Handle Telegram user info
     useEffect(() => {
@@ -80,8 +84,6 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
     }, []);
 
     const handleConnect = useCallback(async () => {
-        // const maxRetries = 3;
-
         try {
             const address = await tonConnectUI.current?.account?.address;
             if (!address) {
@@ -89,7 +91,6 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
                 return;
             }
 
-            // Validate Telegram WebApp parameters
             const tg = window.Telegram?.WebApp;
             if (!tg) {
                 toast.error('Telegram WebApp is not initialized');
@@ -107,7 +108,7 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
                 return;
             }
 
-            // Check if already registered first
+            // Check if already registered
             const isAlreadyRegistered = await checkRegistration(address);
             if (isAlreadyRegistered) {
                 return;

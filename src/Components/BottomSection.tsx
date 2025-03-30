@@ -132,10 +132,13 @@ const BottomSection = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const[isConnected, setIsConnected] = useState(false);
 
-  // Add function to fetch referral count
-  const fetchReferralCount = async (address: string) => {
+  // Modified to use telegramId
+  const fetchReferralCount = async () => {
+    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    if (!telegramId) return;
+
     try {
-      const response = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${address}`);
+      const response = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${telegramId}`);
       if (response.data?.referralCount !== undefined) {
         setReferralCount(response.data.referralCount);
       }
@@ -144,44 +147,40 @@ const BottomSection = () => {
     }
   };
 
-  // Update the wallet address handler
+  // Modified to use telegramId
   const handleWalletAddressChange = async (address: string | undefined) => {
-    if (isProcessing) return; // Prevent multiple simultaneous calls
+    if (isProcessing) return;
     
     setWalletAddress(address);
     if (address) {
       setIsProcessing(true);
       try {
+        const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+        if (!telegramId) {
+          toast.error('Please open this app in Telegram');
+          return;
+        }
+
         // Fetch initial referral count
-        await fetchReferralCount(address);
+        await fetchReferralCount();
 
         // Get the referral code from start_param
         const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
         if (startParam) {
           try {
             const res = await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
-              address,
+              telegramId,
               referralCode: startParam
             });
             
-            // Check if the response indicates success
-            if (res.data && res.data.message === 'Referral code applied successfully') {
-              // Refresh referral count after applying referral code
-              await fetchReferralCount(address);
+            if (res.data?.message === 'Referral code applied successfully') {
+              await fetchReferralCount();
               toast.success('Referral code applied successfully!');
             }
           } catch (error) {
-            // Handle different error cases
             if (axios.isAxiosError(error)) {
               const errorMessage = error.response?.data?.message;
-              if (errorMessage === 'Referral code already applied') {
-                // Don't show any message for already applied codes
-                return;
-              }
-              if (errorMessage === 'Referral code applied successfully') {
-                // If we get a success message in the error response, treat it as success
-                await fetchReferralCount(address);
-                toast.success('Referral code applied successfully!');
+              if (errorMessage === 'Referral code already used') {
                 return;
               }
             }
@@ -199,44 +198,38 @@ const BottomSection = () => {
   };
 
   const handleGetReferralLink = async () => {
-    if (!walletAddress) {
+    if (!isConnected) {
       toast('Please connect your wallet first to invite friends', {
         icon: 'ℹ️',
         duration: 3000,
       });
       return;
     }
-  
-    try {
-      // Get user's Telegram ID
-      const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-      if (!telegramId) {
-        toast.error('Please open this app in Telegram');
-        return;
-      }
 
-      // Add loading state
+    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    if (!telegramId) {
+      toast.error('Please open this app in Telegram');
+      return;
+    }
+
+    try {
       const button = document.querySelector('button:first-child');
       if (button) {
         button.setAttribute('disabled', 'true');
       }
 
       try {
-        // Get referral link and stats with timeout
-        const statsResponse = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${walletAddress}`);
-       
-        if(statsResponse.data?.referralCount !== undefined) {
-          setReferralCount(statsResponse.data.referralCount);
-        }
+        // Get referral stats using telegramId
+        await fetchReferralCount();
 
         const uniqueId = `msg_${telegramId}_${Date.now()}`;
-        try{
-            // Validate bot token
-            const botToken = import.meta.env.VITE_BOT_TOKEN;
-            if (!botToken) {
-                toast.error('Bot token is not configured. Please contact support.');
-                return;
-            }
+        try {
+          const botToken = import.meta.env.VITE_BOT_TOKEN;
+          if (!botToken) {
+            toast.error('Bot token is not configured. Please contact support.');
+            return;
+          }
+
           const res = await axios.post(
             `https://api.telegram.org/bot${botToken}/savePreparedInlineMessage`,
             {
@@ -246,7 +239,7 @@ const BottomSection = () => {
                 id: uniqueId,
                 title: "Meme legends are rising!",
                 input_message_content: {
-                  message_text: "Meme legends are rising!\nI’ve entered the Meme Battle Arena—join me and let’s push our memes to the top!"
+                  message_text: "Meme legends are rising!\nI've entered the Meme Battle Arena—join me and let's push our memes to the top!"
                 },
                 reply_markup: {
                   inline_keyboard: [
@@ -270,18 +263,15 @@ const BottomSection = () => {
           );
 
           if(res.data && res.data.result.id) {
-            
             postEvent("web_app_send_prepared_message", { id: res.data.result.id });
-            // Refresh referral count after sending message
-            await fetchReferralCount(walletAddress);
+            await fetchReferralCount();
           } else {
             toast.error('Failed to prepare message. Please try again.');
           }
-          }catch(error){
-            toast.error('Failed to save message. Please try again.');
-            console.log('Error saving inline message:', error);
-          }
-
+        } catch(error) {
+          toast.error('Failed to save message. Please try again.');
+          console.log('Error saving inline message:', error);
+        }
       } catch (error: unknown) {
         console.error('Backend API Error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -292,7 +282,6 @@ const BottomSection = () => {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       toast.error(`An unexpected error occurred: ${errorMessage}`);
     } finally {
-      // Always restore button state
       const button = document.querySelector('button:first-child');
       if (button) {
         button.removeAttribute('disabled');
@@ -301,7 +290,7 @@ const BottomSection = () => {
   };
   // Use the same formatted message as the bot
   const messageText = 
-    `Meme legends are rising!\nI’ve entered the Meme Battle Arena—join me and let’s push our memes to the top!\n\n` +
+    `Meme legends are rising!\nI've entered the Meme Battle Arena—join me and let's push our memes to the top!\n\n` +
     `Click here to join: https://t.me/MemeBattleArenaBot/MemeBattleArena?startapp=${window.Telegram?.WebApp?.initDataUnsafe?.user?.id}`;
   
   const handleShareButton = async () => {
