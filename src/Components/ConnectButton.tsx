@@ -37,23 +37,18 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
                 return true;
             }
 
-            // If not registered, register with telegramId
-            setIsRegistered(false);
-            setIsConnected(true);
-            setWalletAddress(address);
-            onAddressChange?.(address);
-
+            // If not registered, register the user
             const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register', {
                 telegramId: telegramId,
                 username: username
             });
 
             if(response.data) {
-                console.log('Registered successfully!');
                 setIsConnected(true);
                 setIsRegistered(true);
                 setWalletAddress(address);
                 onAddressChange?.(address);
+                toast.success('Registration successful!');
                 return true;
             }
             return false;
@@ -108,11 +103,8 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
                 return;
             }
 
-            // Check if already registered
-            const isAlreadyRegistered = await checkRegistration(address);
-            if (isAlreadyRegistered) {
-                return;
-            }
+            // Only check registration, don't attempt to register here
+            await checkRegistration(address);
 
         } catch (error) {
             console.error('Unexpected Error:', error);
