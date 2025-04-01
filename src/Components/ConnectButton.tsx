@@ -219,7 +219,7 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
                     <div className='bg-white rounded-xl py-3 px-4 flex items-center justify-between text-blue-400 hover:bg-blue-50 active:scale-95 cursor-pointer transition-all duration-300 text-xl font-bold' onClick={handleDisconnect}>
                         <div className='flex items-center gap-2 transition-all duration-300'>
                             <span className='font-lg font-bold  '>
-                                {walletAddress ? `${walletAddress.substring(0, 6)}.....${walletAddress.substring(walletAddress.length - 10)}` : ''}
+                                {walletAddress ? `${walletAddress.substring(2, 6).toUpperCase()}.....${walletAddress.substring(walletAddress.length - 10).toUpperCase()}` : ''}
                             </span>
                         </div>
                         <button
