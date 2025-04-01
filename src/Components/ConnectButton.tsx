@@ -27,29 +27,31 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
         }
 
         try {
-            // Check registration by telegramId
-            const res = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${telegramId}`);
-            if (res.data?.isRegistered) {
-                setIsRegistered(true);
-                setIsConnected(true);
-                setWalletAddress(address);
-                onAddressChange?.(address);
-                return true;
-            }
+            // Check registration by telegramId only if not already registered
+            if (!isRegistered) {
+                const res = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${telegramId}`);
+                if (res.data?.isRegistered) {
+                    setIsRegistered(true);
+                    setIsConnected(true);
+                    setWalletAddress(address);
+                    onAddressChange?.(address);
+                    return true;
+                }
 
-            // If not registered, register the user
-            const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register', {
-                telegramId: telegramId,
-                username: username
-            });
+                // If not registered, register the user
+                const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register', {
+                    telegramId: telegramId,
+                    username: username
+                });
 
-            if(response.data) {
-                setIsConnected(true);
-                setIsRegistered(true);
-                setWalletAddress(address);
-                onAddressChange?.(address);
-                toast.success('Registration successful!');
-                return true;
+                if(response.data) {
+                    setIsConnected(true);
+                    setIsRegistered(true);
+                    setWalletAddress(address);
+                    onAddressChange?.(address);
+                    toast.success('Registration successful!');
+                    return true;
+                }
             }
             return false;
         } catch (error) {
@@ -61,7 +63,7 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
             onAddressChange?.(undefined);
             return false;
         }
-    }, [onAddressChange, username, setIsConnected]);
+    }, [onAddressChange, username, isRegistered]);
 
     // Handle Telegram user info
     useEffect(() => {
@@ -78,39 +80,39 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
         }
     }, []);
 
-    const handleConnect = useCallback(async () => {
-        try {
-            const address = await tonConnectUI.current?.account?.address;
-            if (!address) {
-                toast.error('Failed to get wallet address');
-                return;
-            }
+    // const handleConnect = useCallback(async () => {
+    //     try {
+    //         const address = await tonConnectUI.current?.account?.address;
+    //         if (!address) {
+    //             toast.error('Failed to get wallet address');
+    //             return;
+    //         }
 
-            const tg = window.Telegram?.WebApp;
-            if (!tg) {
-                toast.error('Telegram WebApp is not initialized');
-                return;
-            }
+    //         const tg = window.Telegram?.WebApp;
+    //         if (!tg) {
+    //             toast.error('Telegram WebApp is not initialized');
+    //             return;
+    //         }
 
-            const telegramId = tg.initDataUnsafe?.user?.id;
-            if (!telegramId) {
-                toast.error('Telegram user ID is not available');
-                return;
-            }
+    //         const telegramId = tg.initDataUnsafe?.user?.id;
+    //         if (!telegramId) {
+    //             toast.error('Telegram user ID is not available');
+    //             return;
+    //         }
 
-            if (!username) {
-                toast.error('Username is not available');
-                return;
-            }
+    //         if (!username) {
+    //             toast.error('Username is not available');
+    //             return;
+    //         }
 
-            // Only check registration, don't attempt to register here
-            await checkRegistration(address);
+    //         // Only check registration, don't attempt to register here
+    //         await checkRegistration(address);
 
-        } catch (error) {
-            console.error('Unexpected Error:', error);
-            toast.error('An unexpected error occurred while connecting wallet');
-        }
-    }, [username, checkRegistration]);
+    //     } catch (error) {
+    //         console.error('Unexpected Error:', error);
+    //         toast.error('An unexpected error occurred while connecting wallet');
+    //     }
+    // }, [username]);
 
     useEffect(() => {
         if (!tonConnectUIInstance) {
@@ -122,16 +124,9 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
 
         const checkConnection = async () => {
             try {
-                if (isConnected) {
-                    const address = await tonConnectUI.current?.account?.address;
-                    if (address) {
-                        await checkRegistration(address);
-                    }
-                } else {
-                    setIsConnected(false);
-                    setIsRegistered(false);
-                    setWalletAddress(undefined);
-                    onAddressChange?.(undefined);
+                const address = await tonConnectUI.current?.account?.address;
+                if (address && !isRegistered) {
+                    await checkRegistration(address);
                 }
             } catch (error) {
                 console.error('Error checking connection:', error);
@@ -142,17 +137,27 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
                 onAddressChange?.(undefined);
             }
         };
-        checkConnection();
+
+        // Only check connection once on mount if not registered
+        if (!isRegistered) {
+            checkConnection();
+        }
+
 
         const unsubscribe = tonConnectUI.current.onStatusChange(async (wallet) => {
             try {
                 if (wallet) {
                     const address = await tonConnectUI.current?.account?.address;
-                    toast.success("Wallet connected successfully!");
-                    if (address) {
+                    if (address && !isRegistered) {
+                        toast.success("Wallet connected successfully!");
                         await checkRegistration(address);
                     }
-                } 
+                } else {
+                    setIsConnected(false);
+                    setIsRegistered(false);
+                    setWalletAddress(undefined);
+                    onAddressChange?.(undefined);
+                }
             } catch (error) {
                 console.error('Error handling wallet status change:', error);
                 toast.error('Failed to handle wallet status change');
@@ -166,7 +171,7 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
         return () => {
             unsubscribe();
         };
-    }, [handleConnect, onAddressChange, checkRegistration]);
+    }, [isRegistered, checkRegistration]); // Only depend on isRegistered and checkRegistration
 
     const openModal = async () => {
         try {
