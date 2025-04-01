@@ -174,7 +174,6 @@ const BottomSection = () => {
             });
             
             if (res.data?.message === 'Referral code applied successfully') {
-              await fetchReferralCount();
               toast.success('Referral code applied successfully!');
             }
           } catch (error) {
@@ -219,8 +218,6 @@ const BottomSection = () => {
       }
 
       try {
-        // Get referral stats using telegramId
-        await fetchReferralCount();
 
         const uniqueId = `msg_${telegramId}_${Date.now()}`;
         try {
@@ -264,7 +261,6 @@ const BottomSection = () => {
 
           if(res.data && res.data.result.id) {
             postEvent("web_app_send_prepared_message", { id: res.data.result.id });
-            await fetchReferralCount();
           } else {
             toast.error('Failed to prepare message. Please try again.');
           }
