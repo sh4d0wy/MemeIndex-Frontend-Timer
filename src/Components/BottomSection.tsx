@@ -138,7 +138,7 @@ const BottomSection = () => {
     if (!telegramId) return;
 
     try {
-      const response = await axios.get(`https://backend-4hpn.onrender.com/api/referral/stats/${telegramId}`);
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/referral/stats/${telegramId}`);
       if (response.data?.referralCount !== undefined) {
         setReferralCount(response.data.referralCount);
       }
@@ -168,7 +168,7 @@ const BottomSection = () => {
         const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
         if (startParam) {
           try {
-            const res = await axios.post('https://backend-4hpn.onrender.com/api/referral/apply', {
+            const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/referral/apply`, {
               telegramId,
               referralCode: startParam
             });

@@ -29,7 +29,7 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
         try {
             // Check registration by telegramId only if not already registered
             if (!isRegistered) {
-                const res = await axios.get(`https://backend-4hpn.onrender.com/api/user/is-registered/${telegramId}`);
+                const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/user/is-registered/${telegramId}`);
                 if (res.data?.isRegistered) {
                     setIsRegistered(true);
                     setIsConnected(true);
@@ -39,7 +39,7 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
                 }
 
                 // If not registered, register the user
-                const response = await axios.post('https://backend-4hpn.onrender.com/api/user/register', {
+                const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/register`, {
                     telegramId: telegramId,
                     username: username
                 });
