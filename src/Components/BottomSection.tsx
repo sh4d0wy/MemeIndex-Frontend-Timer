@@ -155,7 +155,7 @@ const BottomSection = () => {
     if (address) {
       setIsProcessing(true);
       try {
-        const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+        const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id
         if (!telegramId) {
           toast.error('Please open this app in Telegram');
           return;
