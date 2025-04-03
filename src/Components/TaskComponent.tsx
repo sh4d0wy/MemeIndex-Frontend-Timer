@@ -68,7 +68,7 @@ const TaskComponent = () => {
           className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-300 ${
             task.completed
               ? 'bg-white/50 text-white/60'
-              : 'bg-white hover:bg-white/70 text-white'
+              : 'bg-white hover:bg-white/70 text-black hover:text-gray-800'
           }`}
         >
           <div className="flex items-center gap-3">
