@@ -8,6 +8,7 @@ TelegramAnalytics.init({
   token: import.meta.env.VITE_ANALYTICS_TOKEN,
   appName: import.meta.env.VITE_ANALYTICS_APP_NAME,
 });
+console.log(import.meta.env.VITE_ANALYTICS_APP_NAME)
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
