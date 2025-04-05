@@ -6,7 +6,7 @@ import TelegramAnalytics from '@telegram-apps/analytics'
 
 TelegramAnalytics.init({
     token: import.meta.env.VITE_ANALYTICS_TOKEN,
-    appName: 'MemeBattleArena',
+    appName: import.meta.env.VITE_ANALYTICS_APP_NAME,
 });
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
