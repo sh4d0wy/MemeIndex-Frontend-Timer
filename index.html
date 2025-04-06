@@ -5,6 +5,18 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q0XBM3TYWP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-Q0XBM3TYWP');
+      gtag('event', 'connection-completed', {
+        'event_category': 'testing',
+        'event_label': 'connection-completed'
+      });
+    </script>
     <title>MemeIndex Battle Arena</title>
   </head>
   <body>
