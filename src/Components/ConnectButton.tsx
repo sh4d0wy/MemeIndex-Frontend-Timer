@@ -117,7 +117,7 @@ const ConnectButton = ({ isConnected, setIsConnected, onAddressChange }: Connect
     useEffect(() => {
         if (!tonConnectUIInstance) {
             tonConnectUIInstance = new TonConnectUI({
-                manifestUrl: 'https://raw.githubusercontent.com/sh4d0wy/MemeIndex-Frontend-Timer/refs/heads/main/public/tonconnect-manifest.json'
+                manifestUrl: 'https://olive-fashionable-mule-815.mypinata.cloud/ipfs/bafkreidzbh5ffgw5btdhfchx5qy3gkjxl3vexjpaww2yxgf2lvjvnhrn6m'
             });
         }
         tonConnectUI.current = tonConnectUIInstance;
